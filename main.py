@@ -38,6 +38,8 @@ def command_parser(inpt: str) -> dict:
     return msg_data
 
 def main() -> int:
+    print("Commands begin with ';'. Some commands are singly worded (;echo), others doubly (;spoof 'ip').")
+    print("The first occurence of a single word without the command prefix is considered the start of the text in your message.\n")
     print("Commands: ;noecho | ;spoof 'ip' | 'your message text here'")
     print("Ex: ;noecho ;spoof 127.0.0.1 Hello World!\n")
 

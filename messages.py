@@ -10,7 +10,7 @@ class Message:
         self.echo = True
         self.text = ""
 
-        # Parse optional value initialization dict
+        # Parse value initialization dict
         for key in msg_data:
             bad_key = False
             match key:
