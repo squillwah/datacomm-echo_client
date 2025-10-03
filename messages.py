@@ -43,14 +43,12 @@ def encode_message(msg: Message) -> bytes:
 
 def decode_message(code: bytes) -> Message:
     # Create message, decode string message (formatted with protocol)
-    msg = Message()
+    msg_data = {}
     format_string = code.decode()
     # Echo
-    echo = _key_unwrap(format_string, msg.FORMAT_KEYS["echo"])
-    msg.echo = echo == "True"
+    msg_data["echo"] = _key_unwrap(format_string, Message.FORMAT_KEYS["echo"]) == "True"
     # Text
-    text = _key_unwrap(format_string, msg.FORMAT_KEYS["text"])
-    msg.text = text
+    msg_data["text"] = _key_unwrap(format_string, Message.FORMAT_KEYS["text"])
     # Return message
-    return msg
+    return Message(msg_data)
 
