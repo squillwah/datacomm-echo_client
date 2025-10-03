@@ -26,7 +26,7 @@ def command_parser(inpt: str) -> dict:
                 msg_data["echo"] = False
             case "spoof":                   # @todo actually implement spoofing
                 msg_data["spoof"] = True
-                word += 1
+                word += 1                   # @err out of bounds access error could happen
                 msg_data["spoof_ip"] = words[word]  # @todo check spoof ip formatting
             case _:
                 print(f"Command Parsing Error: unkown setting {words[word][1:]}")
