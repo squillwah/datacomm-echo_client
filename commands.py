@@ -53,9 +53,13 @@ def helpme(cmds: list[str]):
         print("  (if your message must start with a ';', use ;text to begin your message)")
         print("  modifiers: ;noecho | ;caps | ;reverse | ;text yourmessagehere")
     elif "all" in cmds:
-        cmds = ["status", "write", "set"]
+        cmds = ["help", "status", "write", "set"]
     for cmd in cmds:
         match cmd:
+            case "help":
+                print(" [help]")
+                print("  lends a helping hand")
+                print("  ex: 'help' / 'help all'")
             case "status":
                 print(" [status]")
                 print("  displays the current state of the client")
@@ -77,12 +81,17 @@ def helpme(cmds: list[str]):
 def status(client: Client):
     print(" Connection: " + (client.connection.sock is not None)*"Active" + (client.connection.sock is None)*"Closed")
     print(" Message Buffer: " + (client.message is not None)*"Full" + (client.message is None)*"Empty")
-    print(f" Recieve Buffer: {len(client.recieved)}")
+    print(f" Recieve Buffer: {len(client.recieved)}\n")
 
-    print(f"\n Logging: {client.fl_logging}")
-    print(f" Instant: {client.fl_instant}")
-    print(f" Listen: {client.fl_listen}")
-    print(f" Force: {client.fl_force}\n")
+    #print(f"\n Logging: {client.fl_logging}")
+    #print(f" Instant: {client.fl_instant}")
+    #print(f" Listen: {client.fl_listen}")
+    #print(f" Force: {client.fl_force}\n")
+
+    for flag in client.flags:
+        print(f" {flag}: {client.flags[flag]}")
+
+    print()
 
 # WRITE
 # Creates a Message from string & writes it to the Client's write buffer
@@ -90,6 +99,12 @@ def write(client: Client, msg_definition_str: str):
     mess = Message(parse_message_command(msg_definition_str)) # @? should parsing the message data be done HERE or in MESSAGES?
 
     client.message_write(mess)
+
+# SET
+# Toggle parts of the client on/off
+def setflag(client: Client, flag: str, onoff: bool):
+    if flag in client.flags: client.flags[flag] = onoff
+    else: print(f" ! unknown client setting '{flag}'")
 
 # =============================================================================
 

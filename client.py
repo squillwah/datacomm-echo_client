@@ -29,7 +29,13 @@ class Client():
         self.connection = socketConnection()    # Socket manager
         #self.listener
 
-        # Various flags for client functionality
+        self.flags = {"logging"     : False,
+                      "instantsend" : True,
+                      "instantread" : True,
+                      "force"       : False}
+
+
+        ## Various flags for client functionality
         self.fl_logging = False     # Flag for logging
         self.fl_instant = True      # Flag for instant send mode
         self.fl_listen = False      # Flag for recieving in background (instead of halting program for response)
@@ -85,31 +91,6 @@ class Client():
         if self.fl_logging: print("Closing connection")
         self.connection.close()
 
-def simple_command_interpret(inpt: str):
-    # Dictionary of commands
-    # Key = command
-    # Value = tuple of tuples of possible command arguments
-    commands = {"set":(("logs, instant"),("true", "false")),
-                "force":None}
-
-    mutators = {"echo":True}
-
-    # The # of command symbols preceding command determine how many args that command has
-    # Client Commands (use dash):
-    # 
-    # ---set FLAG 
-    # ---unset FLAG
-    # -force
-    #
-    # Message Mutators (use colon):
-    #
-    # ;noecho
-    # ;;spoof
-
-    sliced = inpt.split()
-
-    for word in sliced:
-        pass
 
 
 
@@ -127,17 +108,5 @@ def simple_command_interpret(inpt: str):
 
 ## message not echo'd pack, resend?
 ## message not echo'd pack, are you sure you want to wipe and write another?
-
-# Interprets a command from an input string
-#def command_interpret(inpt: str) -> dict:
-
-# Executes a command on a client
-#def command_execute(client: Client, cmd: dict):
-#    for key in cmd:
-#        match key:
-#            case "logging":
-#                client.fl_logging = cmd["logging"]
-#    client.message_write(cmd["msg_data"])
-
 
 
