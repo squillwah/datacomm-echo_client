@@ -2,6 +2,19 @@ from client import Client
 from commands import command_get, command_run
 
 def main():
+    #print("creating client")
+    #client = Client()
+
+    #print("setting default host: 158.83.11.22 (draco1)")
+    #client.connection_set_ip("158.83.11.22")  #@todo remember make the connection attribute private
+
+    # or should we do this? 
+    # command_run(Command(CommandCode.SetHost, ["158.83.11.22"])
+    # command_run(Command(CommandCode.SetPort, [31800])
+    # command_run(command_get("host 158.83.11.22"))
+    # command_run(command_get("port 31800"))
+
+
     print("welcome message")
 
     client = Client()
