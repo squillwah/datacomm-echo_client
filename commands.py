@@ -21,6 +21,7 @@ class CommandCode(Enum):
     Help = 0
     Status = 1
     Write = 2
+    Set = 3
 
 # Command data container 
 @dataclass
@@ -36,19 +37,40 @@ class Command():
 
 # HELP
 # Prints instructions on how to use the client
-def helpme():
-    print("--------------------------------------------------------------------")
-    print(" Commands")
-    print("  help         - Display this message")
-    print("  status       - Display client state")
-    print("  write        - Write a message\n")
+def helpme(cmds: list[str]):
+    if len(cmds) == 0:
+        print(" [Commands]: ")
+        print("  * help")
+        print("  * status")
+        print("  * write")
+        print("  * set\n")
+        print("  Run this command with commands you want help with (or all for all commands)")
+        print("  ex: 'help status' / 'help write status' / 'help all'\n")
 
-    print(" Writing Messages")
-    print("  Commands begin with ';'. Some commands are singly worded (;echo), others doubly (;spoof 'ip').")
-    print("  The first occurence of a single word without the command prefix is considered the start of the text in your message.")
-    print("  Commands: ;noecho | ;caps | ;reverse | ;spoof 'ip' | 'your message text here'")
-    print("   Ex: ;noecho ;spoof 127.0.0.1 Hello World!")
-    print("---------------------------------------------------------------------\n")
+        print(" [Writing Messages]:")
+        print("  Message modifiers begin with ';'.")
+        print("  The first word without the modifier prefix is considered the start of your message.")
+        print("  (if your message must start with a ';', use ;text to begin your message)")
+        print("  modifiers: ;noecho | ;caps | ;reverse | ;text yourmessagehere")
+    elif "all" in cmds:
+        cmds = ["status", "write", "set"]
+    for cmd in cmds:
+        match cmd:
+            case "status":
+                print(" [status]")
+                print("  displays the current state of the client")
+                print("  ex: 'status'")
+            case "write":
+                print(" [write]")
+                print("  write a message to the client's write buffer")
+                print("  ex: 'write yourmsghere' / 'write ;mod1 ;mod2 ... yourmsghere'")
+            case "set":
+                print(" [set]")
+                print("  sets a client flag on or off")
+                print("  ex: 'set instantsend on' / 'set instantread off'")
+            case _:
+                print(f" ! can't help you with '{cmd}'")
+    print()
 
 # STATUS
 # Displays the state of the client's components
@@ -83,14 +105,15 @@ def command_get(inpt: str) -> Command:
     match cmdwords[0]:
         case "help":
             cmd.opcode = CommandCode.Help
+            if len(cmdwords) > 1: cmd.operands = cmdwords[1:]   # Add help operands (specific commands to explain)
         case "status":
             cmd.opcode = CommandCode.Status
         case "write":
             cmd.opcode = CommandCode.Write
-            if len(cmdwords) > 1: cmd.operands = [inpt[6:]]
-            else: cmd.operands = [""]
+            if len(cmdwords) > 1: cmd.operands = [inpt[6:]]     # Add rest of command (message modifiers and text) 
+            else: cmd.operands = [""]                           # If only "write" was written, specify it as blank
         case _:
-            print(f"CMDGETERR: Unknown command '{inpt}'")
+            print(f" ! unknown command '{inpt}'")
     return cmd
 
 # COMMAND_RUN
@@ -98,15 +121,15 @@ def command_get(inpt: str) -> Command:
 def command_run(client: Client, cmd: Command):
     match cmd.opcode:
         case CommandCode.Null:
-            print("hint: use the 'help' command\n")
+            print(" hint: use the 'help' command\n")
         case CommandCode.Help:
-            helpme()
+            helpme(cmd.operands)
         case CommandCode.Status:
             status(client)
         case CommandCode.Write:
             print(cmd.operands)
             write(client, cmd.operands[0])
         case _:
-            print(f"CMDRUNERR: Unknown command type '{cmd}'\n")
+            print(f" ! unknown command type '{cmd}'\n")
 
 
