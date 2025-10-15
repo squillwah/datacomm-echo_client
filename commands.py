@@ -1,4 +1,5 @@
 from client import Client
+from messages import 
 from enum import Enum
 from dataclasses import dataclass
 
@@ -62,7 +63,10 @@ def status(client: Client):
 
 # WRITE
 # Lets user write a message to the client message write buffer
-def write(client: Client):
+def write(client: Client, msg_definition_str: str):
+    
+
+
     client.message_write()
 
 # =============================================================================
