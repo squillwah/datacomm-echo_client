@@ -1,4 +1,24 @@
 
+# =============================================================================
+# This file defines the Message object and related procedures.
+#
+# Messages consist of text and message modifiers:
+#  * Text is simply the string that is the message of the Message.
+#  * Modifiers effect the way our client interprets and displays the Message.
+#
+# The procedures defined in this file allow you to:
+#  1. Encode a Message to bytes (for socket transmission)
+#  2. Decode a Message from bytes
+#  3. Modify the data of a Message via dict
+#  4. Interpret a dict of message data from a string
+#  5. Get a string of the Message's text formatted according to its modifiers
+#  6. Get a string describing the raw state of the Message text and modifiers
+# =============================================================================
+
+# -------
+# Message
+# -------
+
 class Message:
     # Keywords to wrap message data elements in during message transmission
     FORMAT_KEYS = {"echo" : ("|ECHOSTART|", "|ECHOEND|"),
@@ -16,6 +36,12 @@ class Message:
 
         # Parse value initialization dict for alternate values
         modify_message(self, msg_data)
+
+# =============================================================================
+
+# --------------------------
+# Encoding/Decoding Messages
+# --------------------------
 
 def _key_wrap(data, key: tuple((str, str))) -> str:
     # Wrap the data element around the given keys
@@ -43,6 +69,12 @@ def decode_message(code: bytes) -> Message:
     msg_data["text"] = _key_unwrap(format_string, Message.FORMAT_KEYS["text"])
     # Return message
     return Message(msg_data)
+
+# =============================================================================
+
+# ---------------------------
+# Modifying/Creating Messages
+# ---------------------------
 
 # Alter components of a message with a dict
 def modify_message(msg: Message, msg_data: dict):
@@ -97,6 +129,12 @@ def parse_message_command(inpt: str) -> dict:
     msg_data["text"] = ' '.join(words[word:])
 
     return msg_data
+
+# =============================================================================
+
+# -------------------
+# Displaying Messages
+# -------------------
 
 # Return string of message formatted according to its components
 def message_display_fancy(msg: Message):
