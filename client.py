@@ -38,19 +38,20 @@ class Client():
                       "burnonread"  : True}     # Delete the recieved message once read
 
 
-        ## Various flags for client functionality
-        #self.fl_logging = False     # Flag for logging
-        #self.fl_instant = True      # Flag for instant send mode
-        #self.fl_listen = False      # Flag for recieving in background (instead of halting program for response)
-        #self.fl_force = True #False       # Flag for forcing some commands
+    #def run()
+    #    self._running = True
+    #def stop()
+    #    self._running = False
 
-        ## burn on read, burn on send
 
     def message_write(self, msg: Message):#, details: dict = {}):  # Details dict defines initial components of message
         if self._message != None:
-            if self.flags["force"]: self.message_clear()
+            print(" ! message in buffer")
+            if self.flags["force"]:
+                print(" ! force flag set, writing anyways")
+                self.message_clear()
             else:
-                print(" ! message still in buffer, set the 'force' flag to override")
+                print(" ! cancelling write, set the 'force' flag to override")
                 return
 
         if self.flags["logging"]: print(" . writing message to buffer")
@@ -63,12 +64,12 @@ class Client():
         self._message = None
 
     def message_send(self):
-        if self.flags["logging"]: print("CLOG: Sending message in buffer through socket")
+        if self.flags["logging"]: print(" . sending message in buffer through socket")
         self._connection.send_msg(encode_message(self._message))
         if self.flags["burnonsend"]: self.message_clear()
 
         # @todo move this to threaded reciever/listener
-        if self.flags["logging"]: print("CLOG: Waiting for recieve...")
+        if self.flags["logging"]: print(" . waiting for recieve...")
         self._recieved.append(decode_message(self._connection.recv_msg()))
 
     def display_message(self, msg: Message):
@@ -101,7 +102,7 @@ class Client():
     def get_state(self) -> dict:
         state = {"connection":((self._connection.sock is not None)*"Active" + (self._connection.sock is None)*"Disconnected"),
                  "messagebuffer":((self._message is not None)*"Occupied" + (self._message is None)*"Empty"),
-                 "recievebuffer":(str(len(self._recieved)) + " Messages"),
+                 "recievebuffer":(str(len(self._recieved)) + " messages"),
                  "flags":{}}
         for flag in self.flags:
             state["flags"][flag] = self.flags[flag]*"on" + (not self.flags[flag])*"off"
