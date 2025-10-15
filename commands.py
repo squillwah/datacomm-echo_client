@@ -18,10 +18,17 @@ from messages import Message, parse_message_command
 # Types of commands in the client
 class CommandCode(Enum):
     Null = None
-    Help = 0
-    Status = 1
-    Write = 2
-    Set = 3
+    Help = 0            # Help text
+    Status = 1          # Client state
+    Write = 2           # Write message
+    Set = 3             # Set a client flag
+
+#    view # view message in buffer
+#    clear # clear message in buffer
+#    edit # edit message in buffer
+#
+#    read # read messages recieved
+#    clear # clear messages recieved
 
 # Command data container 
 @dataclass
@@ -79,17 +86,25 @@ def helpme(cmds: list[str]):
 # STATUS
 # Displays the state of the client's components
 def status(client: Client):
-    print(" Connection: " + (client.connection.sock is not None)*"Active" + (client.connection.sock is None)*"Closed")
-    print(" Message Buffer: " + (client.message is not None)*"Full" + (client.message is None)*"Empty")
-    print(f" Recieve Buffer: {len(client.recieved)}\n")
+    client_state = client.get_state()
+    #print(" Connection: " + (client.connection.sock is not None)*"Active" + (client.connection.sock is None)*"Closed")
+    #print(" Message Buffer: " + (client.message is not None)*"Full" + (client.message is None)*"Empty")
+    #print(f" Recieve Buffer: {len(client.recieved)}\n")
 
     #print(f"\n Logging: {client.fl_logging}")
     #print(f" Instant: {client.fl_instant}")
     #print(f" Listen: {client.fl_listen}")
     #print(f" Force: {client.fl_force}\n")
 
-    for flag in client.flags:
-        print(f" {flag}: {client.flags[flag]}")
+    #for flag in client.flags:
+    #    print(f" {flag}: {client.flags[flag]}")
+
+    print(f" Connection: {client_state["connection"]}")
+    print(f" Write Buffer: {client_state["messagebuffer"]}")
+    print(f" Inbox: {client_state["recievebuffer"]}\n")
+
+    for flag in client_state["flags"]:
+        print(f"  {flag}: {client_state["flags"][flag]}")
 
     print()
 
@@ -103,7 +118,9 @@ def write(client: Client, msg_definition_str: str):
 # SET
 # Toggle parts of the client on/off
 def setflag(client: Client, flag: str, onoff: bool):
-    if flag in client.flags: client.flags[flag] = onoff
+    if flag in client.flags:
+        client.flags[flag] = onoff
+        print(f" {flag}: {client.flags[flag]}\n")
     else: print(f" ! unknown client setting '{flag}'")
 
 # =============================================================================
