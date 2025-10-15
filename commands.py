@@ -132,18 +132,27 @@ def setflag(client: Client, flag: str, onoff: bool):
 # COMMAND_GET
 # Returns a Command dataclass interpreted from the given string
 def command_get(inpt: str) -> Command:
-    cmd = Command(CommandCode.Null, ())
-    cmdwords = inpt.split()
+    cmd = Command(CommandCode.Null, [])
+    cmdwords = inpt.lower().split()
     match cmdwords[0]:
+        # 0 -> n operands
         case "help":
             cmd.opcode = CommandCode.Help
             if len(cmdwords) > 1: cmd.operands = cmdwords[1:]   # Add help operands (specific commands to explain)
+        # 0 operands
         case "status":
             cmd.opcode = CommandCode.Status
+        # 1 operand
         case "write":
             cmd.opcode = CommandCode.Write
             if len(cmdwords) > 1: cmd.operands = [inpt[6:]]     # Add rest of command (message modifiers and text) 
             else: cmd.operands = [""]                           # If only "write" was written, specify it as blank
+        # 2 operands
+        case "set":
+            cmd.opcode = CommandCode.Set
+            cmd.operands = ["", ""]
+            if len(cmdwords) != 3: print(f" ! bad set command, must be 3 words (set flag on/off")
+            else: cmd.operands = [cmdwords[1], cmdwords[2]]
         case _:
             print(f" ! unknown command '{inpt}'")
     return cmd
@@ -161,6 +170,10 @@ def command_run(client: Client, cmd: Command):
         case CommandCode.Write:
             print(cmd.operands)
             write(client, cmd.operands[0])
+        case CommandCode.Set:
+            if cmd.operands[1] == "on": setflag(client, cmd.operands[0], True)
+            elif cmd.operands[1] == "off": setflag(client, cmd.operands[0], False)
+            else: print(f" ! flags can only be set on or of, not '{cmd.operands[1]}'")
         case _:
             print(f" ! unknown command type '{cmd}'\n")
 
