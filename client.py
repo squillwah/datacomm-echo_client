@@ -24,73 +24,94 @@ from sock import socketConnection
 
 class Client():
     def __init__(self):
-        self.message = None     # Message written from client
-        self.recieved = []      # Messages recieved to client
-        self.connection = socketConnection()    # Socket manager
+        self._message = None     # Message written from client
+        self._recieved = []      # Messages recieved by client
+        self._connection = socketConnection()    # Socket manager
         #self.listener
 
-        self.flags = {"logging"     : False,
-                      "instantsend" : True,
-                      "instantread" : True,
-                      "force"       : False}
+        self.flags = {"logging"     : False,    # Client logs its operations to screen
+                      "force"       : False,    # Let messages in buffer be written over
+                      "rawread"     : False,    # Messages are read unformatted by modifiers
+                      "instantsend" : True,     # Instantly send a message once written
+                      "instantread" : True,     # Instantly read a message once recieved
+                      "burnonsend"  : True,     # Clear the message buffer on send
+                      "burnonread"  : True}     # Delete the recieved message once read
 
 
         ## Various flags for client functionality
-        self.fl_logging = False     # Flag for logging
-        self.fl_instant = True      # Flag for instant send mode
-        self.fl_listen = False      # Flag for recieving in background (instead of halting program for response)
-        self.fl_force = True #False       # Flag for forcing some commands
+        #self.fl_logging = False     # Flag for logging
+        #self.fl_instant = True      # Flag for instant send mode
+        #self.fl_listen = False      # Flag for recieving in background (instead of halting program for response)
+        #self.fl_force = True #False       # Flag for forcing some commands
 
         ## burn on read, burn on send
 
     def message_write(self, msg: Message):#, details: dict = {}):  # Details dict defines initial components of message
-        if self.message != None:
-            if not self.fl_force:
-                print("WARN: Message still exists in buffer, set the 'force' flag to override")
+        if self._message != None:
+            if self.flags["force"]: self.message_clear()
+            else:
+                print(" ! message still in buffer, set the 'force' flag to override")
                 return
-            else: self.message_clear()
-        if self.fl_logging: print("CLOG: Writing a message to buffer")
-        self.message = msg              #Message(parse_message_command(input(" Write: ")))
-        if self.fl_instant:
-            self.message_send()
-        #    self.message_wait_for_recieve() threaded listerner DO!
-            if self.fl_logging: print("CLOG: Waiting for recieve...")
-            self.recieved.append(decode_message(self.connection.recv_msg()))
-            self.display_message(self.recieved.pop())
 
+        if self.flags["logging"]: print(" . writing message to buffer")
+        self._message = msg
+        if self.flags["instantsend"]: self.message_send()
+        if self.flags["instantread"]: self.display_message(self._recieved.pop())
 
     def message_clear(self):
-        if self.fl_logging: print("CLOG: Clearing message in buffer")
-        self.message = None
-
-    # message_display() 
+        if self.flags["logging"]: print(" . clearing message in buffer")
+        self._message = None
 
     def message_send(self):
-        if self.fl_logging: print("CLOG: Sending message in buffer through socket")
-        self.connection.send_msg(encode_message(self.message))
+        if self.flags["logging"]: print("CLOG: Sending message in buffer through socket")
+        self._connection.send_msg(encode_message(self._message))
+        if self.flags["burnonsend"]: self.message_clear()
+
+        # @todo move this to threaded reciever/listener
+        if self.flags["logging"]: print("CLOG: Waiting for recieve...")
+        self._recieved.append(decode_message(self._connection.recv_msg()))
 
     def display_message(self, msg: Message):
         print(f'text: "{msg.text}"')
-        print(f"echo: {msg.echo}")
+        print(f"echo: {msg.echo}\n")
+
+    #def message_view()
+    #def message_edit()
+    #def inbox_view()
+    #def inbox_empty()
 
     def connection_set_ip(self, ip: str):
-        if self.fl_logging: print(f"CLOG: Setting connection host to {ip}")
+        if self.flags["logging"]: print(f"CLOG: Setting connection host to {ip}")
         # @todo do some checking here for bad ips (or should that be done in command_interpret?)
-        self.connection.host = ip
+        self._connection.host = ip
 
     def connection_set_port(self, port: int):
-        if self.fl_logging: print(f"CLOG: Setting connection port to {port}")
-        self.connection.port = port
+        if self.flags["logging"]: print(f"CLOG: Setting connection port to {port}")
+        self._connection.port = port
 
     def connection_establish(self):
-        if self.fl_logging: print("Establishing connection")
-        self.connection.open()
-        print(self.connection.recv_msg().decode()) # Welcome from server
+        if self.flags["logging"]: print("Establishing connection")
+        self._connection.open()
+        print(self._connection.recv_msg().decode()) # Welcome from server
 
     def connection_close(self):
-        if self.fl_logging: print("Closing connection")
-        self.connection.close()
+        if self.flags["logging"]: print("Closing connection")
+        self._connection.close()
 
+    def get_state(self) -> dict:
+        state = {"connection":((self._connection.sock is not None)*"Active" + (self._connection.sock is None)*"Disconnected"),
+                 "messagebuffer":((self._message is not None)*"Occupied" + (self._message is None)*"Empty"),
+                 "recievebuffer":(str(len(self._recieved)) + " Messages"),
+                 "flags":{}}
+        for flag in self.flags:
+            state["flags"][flag] = self.flags[flag]*"on" + (not self.flags[flag])*"off"
+        return state
+
+
+
+
+            #    self.message_wait_for_recieve() threaded listerner DO!
+    # message_display() 
 
 
 
