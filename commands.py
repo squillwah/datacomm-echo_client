@@ -1,7 +1,8 @@
-from client import Client
-from messages import 
 from enum import Enum
 from dataclasses import dataclass
+
+from client import Client
+from messages import Message, parse_message_command
 
 # =============================================================================
 # Here lies all commands possible with our echo client:
@@ -25,7 +26,7 @@ class CommandCode(Enum):
 @dataclass
 class Command():
     opcode: CommandCode
-    operands: tuple[str]
+    operands: list[str]
 
 # =============================================================================
 
@@ -36,7 +37,7 @@ class Command():
 # HELP
 # Prints instructions on how to use the client
 def helpme():
-    print("---")
+    print("--------------------------------------------------------------------")
     print(" Commands")
     print("  help         - Display this message")
     print("  status       - Display client state")
@@ -47,7 +48,7 @@ def helpme():
     print("  The first occurence of a single word without the command prefix is considered the start of the text in your message.")
     print("  Commands: ;noecho | ;caps | ;reverse | ;spoof 'ip' | 'your message text here'")
     print("   Ex: ;noecho ;spoof 127.0.0.1 Hello World!")
-    print("---\n")
+    print("---------------------------------------------------------------------\n")
 
 # STATUS
 # Displays the state of the client's components
@@ -62,12 +63,11 @@ def status(client: Client):
     print(f" Force: {client.fl_force}\n")
 
 # WRITE
-# Lets user write a message to the client message write buffer
+# Creates a Message from string & writes it to the Client's write buffer
 def write(client: Client, msg_definition_str: str):
-    
+    mess = Message(parse_message_command(msg_definition_str)) # @? should parsing the message data be done HERE or in MESSAGES?
 
-
-    client.message_write()
+    client.message_write(mess)
 
 # =============================================================================
 
@@ -76,31 +76,37 @@ def write(client: Client, msg_definition_str: str):
 # ----------------------------
 
 # COMMAND_GET
-# Returns a Command dataclass interpreted from the given string (or None if no valid command found)
+# Returns a Command dataclass interpreted from the given string
 def command_get(inpt: str) -> Command:
-    cmd = Command(None, ())
-    match inpt:
+    cmd = Command(CommandCode.Null, ())
+    cmdwords = inpt.split()
+    match cmdwords[0]:
         case "help":
             cmd.opcode = CommandCode.Help
         case "status":
             cmd.opcode = CommandCode.Status
         case "write":
             cmd.opcode = CommandCode.Write
+            if len(cmdwords) > 1: cmd.operands = [inpt[6:]]
+            else: cmd.operands = [""]
         case _:
-            print(f"CMDGETERR: Unkown command '{inpt}'\n")
+            print(f"CMDGETERR: Unknown command '{inpt}'")
     return cmd
 
 # COMMAND_RUN
 # Executes the given command's procedure on a Client object
 def command_run(client: Client, cmd: Command):
     match cmd.opcode:
+        case CommandCode.Null:
+            print("hint: use the 'help' command\n")
         case CommandCode.Help:
             helpme()
         case CommandCode.Status:
             status(client)
         case CommandCode.Write:
-            write(client)
+            print(cmd.operands)
+            write(client, cmd.operands[0])
         case _:
-            print(f"CMDRUNERR: Unkown command type '{cmd}'\n")
+            print(f"CMDRUNERR: Unknown command type '{cmd}'\n")
 
 

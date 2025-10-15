@@ -33,16 +33,18 @@ class Client():
         self.fl_logging = False     # Flag for logging
         self.fl_instant = True      # Flag for instant send mode
         self.fl_listen = False      # Flag for recieving in background (instead of halting program for response)
-        self.fl_force = False       # Flag for forcing some commands
+        self.fl_force = True #False       # Flag for forcing some commands
 
-    def message_write(self):#, details: dict = {}):  # Details dict defines initial components of message
+        ## burn on read, burn on send
+
+    def message_write(self, msg: Message):#, details: dict = {}):  # Details dict defines initial components of message
         if self.message != None:
             if not self.fl_force:
                 print("WARN: Message still exists in buffer, set the 'force' flag to override")
                 return
             else: self.message_clear()
         if self.fl_logging: print("CLOG: Writing a message to buffer")
-        self.message = Message(parse_message_command(input(" Write: ")))
+        self.message = msg              #Message(parse_message_command(input(" Write: ")))
         if self.fl_instant:
             self.message_send()
         #    self.message_wait_for_recieve() threaded listerner DO!
