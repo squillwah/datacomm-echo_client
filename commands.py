@@ -23,12 +23,18 @@ class CommandCode(Enum):
     Write = 2           # Write message
     Set = 3             # Set a client flag
 
+
 #    view # view message in buffer
 #    clear # clear message in buffer
 #    edit # edit message in buffer
+#    send # send message in buffer (manual)
+#
+# keepwrite # everything written is a message sent : text : text
 #
 #    read # read messages recieved
 #    clear # clear messages recieved
+
+    #quit
 
 # Command data container 
 @dataclass
@@ -81,7 +87,6 @@ def helpme(cmds: list[str]):
                 print("  ex: 'set instantsend on' / 'set instantread off'")
             case _:
                 print(f" ! can't help you with '{cmd}'")
-    print()
 
 # STATUS
 # Displays the state of the client's components
@@ -106,13 +111,10 @@ def status(client: Client):
     for flag in client_state["flags"]:
         print(f"  {flag}: {client_state["flags"][flag]}")
 
-    print()
-
 # WRITE
 # Creates a Message from string & writes it to the Client's write buffer
 def write(client: Client, msg_definition_str: str):
     mess = Message(parse_message_command(msg_definition_str)) # @? should parsing the message data be done HERE or in MESSAGES?
-
     client.message_write(mess)
 
 # SET
@@ -120,7 +122,7 @@ def write(client: Client, msg_definition_str: str):
 def setflag(client: Client, flag: str, onoff: bool):
     if flag in client.flags:
         client.flags[flag] = onoff
-        print(f" {flag}: {client.flags[flag]}\n")
+        print(f" {flag}: {client.flags[flag]}")
     else: print(f" ! unknown client setting '{flag}'")
 
 # =============================================================================
@@ -162,7 +164,7 @@ def command_get(inpt: str) -> Command:
 def command_run(client: Client, cmd: Command):
     match cmd.opcode:
         case CommandCode.Null:
-            print(" hint: use the 'help' command\n")
+            print(" hint: use the 'help' command")
         case CommandCode.Help:
             helpme(cmd.operands)
         case CommandCode.Status:
@@ -176,5 +178,6 @@ def command_run(client: Client, cmd: Command):
             else: print(f" ! flags can only be set on or of, not '{cmd.operands[1]}'")
         case _:
             print(f" ! unknown command type '{cmd}'\n")
+    print() # newline between commands
 
 
