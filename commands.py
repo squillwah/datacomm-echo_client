@@ -22,6 +22,7 @@ class CommandCode(Enum):
     Status = 1          # Client state
     Write = 2           # Write message
     Set = 3             # Set a client flag
+    Quit = 4
 
 
 #    view # view message in buffer
@@ -136,6 +137,12 @@ def setflag(client: Client, flag: str, onoff: bool):
         print(f" {flag}: {client.flags[flag]}")
     else: print(f" ! unknown client setting '{flag}'")
 
+# QUIT
+# Gracefully shutdown client connection, set the client kill signal
+def quit(client: Client):
+    client.connection_close()
+    client.killme = True
+
 # =============================================================================
 
 # ----------------------------
@@ -145,30 +152,43 @@ def setflag(client: Client, flag: str, onoff: bool):
 # COMMAND_GET
 # Returns a Command dataclass interpreted from the given string
 def command_get(inpt: str) -> Command:
-    cmd = Command(CommandCode.Null, [])
+    operand = CommandCode.Null
+    operands = []
+
     cmdwords = inpt.lower().split()
     match cmdwords[0]:
+        # HELP
         # 0 -> n operands
         case "help":
-            cmd.opcode = CommandCode.Help
-            if len(cmdwords) > 1: cmd.operands = cmdwords[1:]   # Add help operands (specific commands to explain)
+            opcode = CommandCode.Help
+            if len(cmdwords) > 1: operands = cmdwords[1:]   # Add help operands (specific commands to explain)
+        # STATUS
         # 0 operands
         case "status":
-            cmd.opcode = CommandCode.Status
+            opcode = CommandCode.Status
+        # WRITE
         # 1 operand
         case "write":
-            cmd.opcode = CommandCode.Write
-            if len(cmdwords) > 1: cmd.operands = [inpt[6:]]     # Add rest of command (message modifiers and text) 
-            else: cmd.operands = [""]                           # If only "write" was written, specify it as blank
+            opcode = CommandCode.Write
+            if len(cmdwords) > 1: operands = [inpt[6:]]     # Add rest of command (message modifiers and text) 
+            else: operands = [""]                           # If only "write" was written, specify it as blank
+        # SET
         # 2 operands
         case "set":
-            cmd.opcode = CommandCode.Set
-            cmd.operands = ["", ""]
+            opcode = CommandCode.Set
+            operands = ["", ""]
             if len(cmdwords) != 3: print(f" ! bad set command, must be 3 words (set flag on/off")
-            else: cmd.operands = [cmdwords[1], cmdwords[2]]
+            else: operands = [cmdwords[1], cmdwords[2]]
+        # QUIT
+        # 0 operands
+        case "quit":
+            opcode = CommandCode.Quit
+        # INVALID
+        # 0 operands/CommandCode.Null
         case _:
             print(f" ! unknown command '{inpt}'")
-    return cmd
+
+    return Command(opcode, operands)
 
 # COMMAND_RUN
 # Executes the given command's procedure on a Client object
@@ -188,6 +208,8 @@ def command_run(client: Client, cmd: Command) -> bool:
             if cmd.operands[1] == "on": setflag(client, cmd.operands[0], True)
             elif cmd.operands[1] == "off": setflag(client, cmd.operands[0], False)
             else: print(f" ! flags can only be set on or of, not '{cmd.operands[1]}'")
+        case CommandCode.Quit:
+            quit(client)
         case _:
             print(f" ! unknown command type '{cmd}'\n")
             success = False

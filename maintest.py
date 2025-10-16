@@ -24,17 +24,19 @@ def main():
 
     client.connection_establish()
 
-    run = True
-    while run:
-        cmd = None
-        while (cmd == None):
-            inp = input("> ")
-            if inp == "QUIT":
-                run = False
-                break
-            cmd = command_get(inp)
+#    run = True
+#    while run:
+#        cmd = None
+#        while (cmd == None):
+#            inp = input("> ")
+#            if inp == "QUIT":
+#                run = False
+#                break
+#            cmd = command_get(inp)
+#
+#        command_run(client, cmd)
 
-        command_run(client, cmd)
+    while not client.killme: command_run(client, command_get(input("> ")))
 
     #command_execute(client, command_interpret(inp))
 
