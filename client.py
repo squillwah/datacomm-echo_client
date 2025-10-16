@@ -1,7 +1,9 @@
 from threading import Thread
 
-from messages import Message, encode_message, decode_message, stringify_message_fancy, stringify_message_raw
 from sock import socketConnection
+from messages import Message, modify_message, \
+                     encode_message, decode_message, \
+                     stringify_message_fancy, stringify_message_raw
 
 # =============================================================================
 # Echo Client
