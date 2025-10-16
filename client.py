@@ -1,4 +1,4 @@
-from messages import Message, encode_message, decode_message, parse_message_command
+from messages import Message, encode_message, decode_message, stringify_message_fancy, stringify_message_raw
 from sock import socketConnection
 
 # Client
@@ -37,6 +37,8 @@ class Client():
                       "burnonsend"  : True,     # Clear the message buffer on send
                       "burnonread"  : True}     # Delete the recieved message once read
 
+        self.killme = False     # Signal client manager to stop processing this client
+
 
     #def run()
     #    self._running = True
@@ -73,8 +75,11 @@ class Client():
         self._recieved.append(decode_message(self._connection.recv_msg()))
 
     def display_message(self, msg: Message):
-        print(f'text: "{msg.text}"')
-        print(f"echo: {msg.echo}\n")
+        #print(f'text: "{msg.text}"')
+        #print(f"echo: {msg.echo}\n")
+
+        print(f" {stringify_message_fancy(msg)}")
+        print(f" {stringify_message_raw(msg)}")
 
     #def message_view()
     #def message_edit()
