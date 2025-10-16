@@ -21,18 +21,26 @@
 
 class Message:
     # Keywords to wrap message data elements in during message transmission
-    FORMAT_KEYS = {"echo" : ("|ECHOSTART|", "|ECHOEND|"),
-                   "text" : ("|TEXTSTART|", "|TEXTEND|")}
+    FORMAT_KEYS = {"text" : ("|TEXTSTART|", "|TEXTEND|"),
+                   "echo" : ("|ECHOSTART|", "|ECHOEND|"),
+                   "caps" : ("|CAPSSTART|", "|CAPSEND|"),
+                   "rvrs" : ("|RVRSSTART|", "|RVRSEND|")}
 
     # Constructor, initializes message to default values + optional defined data 
     def __init__(self, msg_data: dict = {}):
         # Initial values
-        self.echo = True
         self.text = ""
+        self.modifiers = {"echo":True,
+                          "caps":False,
+                          "rvrs":False}
 
-        # extra credit modifiers
-        self.caps = False
-        self.reverse = False
+        ## Initial values
+        #self.echo = True
+        #self.text = ""
+
+        ## extra credit modifiers
+        #self.caps = False
+        #self.rvrs = False
 
         # Parse value initialization dict for alternate values
         modify_message(self, msg_data)
@@ -55,20 +63,23 @@ def _key_unwrap(format_string: str, key: tuple((str, str))) -> str:
 
 def encode_message(msg: Message) -> bytes:
     format_string = ""              # String to hold 'serialized' message
-    format_string += _key_wrap(msg.echo, msg.FORMAT_KEYS["echo"])
-    format_string += _key_wrap(msg.text, msg.FORMAT_KEYS["text"])
+    format_string += _key_wrap(msg.text, msg.FORMAT_KEYS["text"])               # Wrap text
+    for mod in msg.modifiers:
+        format_string += _key_wrap(msg.modifiers[mod], msg.FORMAT_KEYS[mod])    # Wrap modifiers
     return format_string.encode()   # Return string encoded as bytes
 
 def decode_message(code: bytes) -> Message:
     # Create message, decode string message (formatted with protocol)
-    msg_data = {}
+    mess = Message()
     format_string = code.decode()
-    # Echo
-    msg_data["echo"] = _key_unwrap(format_string, Message.FORMAT_KEYS["echo"]) == "True"
-    # Text
+
+    msg_data = {"text":"","modifiers":{}}
     msg_data["text"] = _key_unwrap(format_string, Message.FORMAT_KEYS["text"])
-    # Return message
-    return Message(msg_data)
+    for mod in mess.modifiers:
+        msg_data["modifiers"][mod] = _key_unwrap(format_string, Message.FORMAT_KEYS[mod]) == "True"    # Convert back to bool
+    modify_message(mess, msg_data)
+
+    return mess
 
 # =============================================================================
 
@@ -78,23 +89,23 @@ def decode_message(code: bytes) -> Message:
 
 # Alter components of a message with a dict
 def modify_message(msg: Message, msg_data: dict):
-    for key in msg_data:
-        bad_key = False
-        match key:
-            case "echo":
-                if type(msg_data[key]) == bool: msg.echo = msg_data[key]
-                else: bad_key = True
-            case "text":
-                if type(msg_data[key]) == str: msg.text = msg_data[key]
-                else: bad_key = True
-            case _:
-                print(f"Message Modification Error: unkown setting '{key}'")
-        if bad_key:
-            print(f"Message Modification Error: bad setting type '{key}'")
+    for data in msg_data:
+        if data == "text":
+            if "text" in msg_data:
+                if type(msg_data["text"]) == str: msg.text = msg_data["text"]
+                else: print(" ! can't modify message text, replacement not string")
+        elif data == "modifiers":
+            if "modifiers" in msg_data:
+                for mod in msg_data["modifiers"]:
+                    if mod in msg.modifiers:
+                        if type(msg_data["modifiers"][mod]) == bool: msg.modifiers[mod] = msg_data["modifiers"][mod]
+                        else: print(f" ! can't modify modifier {mod}, replacement not bool")
+                    else: print(f" ! can't modify modifier {mod}, not a valid modifier")
+        else: print(f" ! can't modify message {data}, unknown component")
 
 # Get dict of message components from a string
 def parse_message_command(inpt: str) -> dict:
-    msg_data = {}
+    msg_data = {"text":"","modifiers":{}}
 
     inpt.lstrip()           # Trim all left whitespace
     words = inpt.split()    # Split input into list of all words (using space as delimiter)
@@ -116,9 +127,9 @@ def parse_message_command(inpt: str) -> dict:
 
         match words[word][1:]:
             case "noecho":
-                msg_data["echo"] = False
+                msg_data["modifiers"]["echo"] = False
             case "spoof":                   # @todo actually implement spoofing
-                msg_data["spoof"] = True
+                msg_data["modifiers"]["spoof"] = True
                 word += 1                   # @err out of bounds access error could happen
                 msg_data["spoof_ip"] = words[word]  # @todo check spoof ip formatting
             case _:
@@ -138,16 +149,19 @@ def parse_message_command(inpt: str) -> dict:
 
 def stringify_message_fancy(msg: Message) -> str:
     mess = ""
-    if msg.echo:
+    if msg.modifiers["echo"]:
         mess = msg.text
-        if msg.caps:
+        if msg.modifiers["caps"]:
             mess = mess.capitalize()
-        if msg.reverse:
+        if msg.modifiers["rvrs"]:
             mess = mess[-1:0]
     return mess
 
 def stringify_message_raw(msg: Message):
-    mess = f"'{msg.text}' echo:{msg.echo} caps:{msg.caps} reverse:{msg.reverse}"
+    mess = f"'{msg.text}'  "
+    for mod in msg.modifiers:
+        mess += f"|{mod}:{msg.modifiers[mod]}"
+    mess += "|"
     return mess
 
 # Return string of message formatted according to its components
