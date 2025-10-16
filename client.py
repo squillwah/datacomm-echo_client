@@ -2,6 +2,7 @@ from threading import Thread
 
 from messages import Message, encode_message, decode_message, stringify_message_fancy, stringify_message_raw
 from sock import socketConnection
+#from listener import Listener
 
 # Client
 
@@ -27,9 +28,13 @@ from sock import socketConnection
 class Client():
     def __init__(self):
         self._message = None     # Message written from client
-        self._recieved = []      # Messages recieved by client
-        self._connection = socketConnection()    # Socket manager
-        #self.listener
+        self._inbox = []         # Messages recieved by client
+        self._connection = socketConnection()       # Socket manager
+
+        self._ls_thread = Thread(target=self._listener_process)
+        self._ls_buffer = b""
+        self._ls_running = False
+        self._ls_signal_recieved = False
 
         self.flags = {"logging"     : False,    # Client logs its operations to screen
                       "force"       : False,    # Let messages in buffer be written over
@@ -47,6 +52,46 @@ class Client():
     #def stop()
     #    self._running = False
 
+    # =========================================================================
+
+    # ------------------ 
+    # Threaded Recieving
+    # ------------------
+
+    # The listener process
+    # Waits for recieves from socket, appends decoded bytes to client inbox
+    def _listener_process(self):
+        while(self._ls_running):
+            #self._ls_buffer += self._connection.recv_msg()
+            data = self._connection.recv_msg() # THIS COULD CAUSE ISSUE WITH INCOMPLETE MESSAGES MAYBE MAYBE MAYBE!
+
+            ## Search buffer for a valid message wrapped in the message key
+            #buffer_string = str(ls_buffer)
+            #mess_start = buffer_string.find(Message.FORMAT_KEYS["all"][0])
+            #mess_end = buffer_string.find(Message.FORMAT_KEYS["all"][1])
+
+            #if mess_start != -1 and mess_end != -1:
+            #    self._inbox
+
+            self._inbox.append(decode_message(data)) # @todo implement multi message decode and bad message conditions in decode_message
+            self._ls_signal_recieved = True
+
+    # Start the listener thread
+    def _listener_start(self):
+        self._ls_running = True
+        self._ls_thread.start()
+
+    # Stop the listener thread
+    def _listener_stop(self):
+        self._ls_running = False
+        self._connection.send_msg(b"Bye!")  # Default rcv causes hanging (no timeout), must send final msg for it to grab
+        self._ls_thread.join()
+
+    # =========================================================================
+
+    # ---------------------------------
+    # Creating/Editing/Sending Messages
+    # ---------------------------------
 
     def message_write(self, msg: Message):#, details: dict = {}):  # Details dict defines initial components of message
         if self._message != None:
@@ -61,7 +106,7 @@ class Client():
         if self.flags["logging"]: print(" . writing message to buffer")
         self._message = msg
         if self.flags["instantsend"]: self.message_send()
-        if self.flags["instantread"]: self.display_message(self._recieved.pop()) # should this only be in listener?
+        #if self.flags["instantread"]: self.display_message(self._recieved.pop()) # should this only be in listener?
 
 #        # instant read == wait to recieve echo before moving on
 #        recievedsize = len(self._recieved)
@@ -87,15 +132,27 @@ class Client():
         self._message = None
 
     def message_send(self):
+        # Clear the recieved signal
+        if self.flags["instantread"]: self._ls_signal_recieved = False
+
+        # Encode+send message, clear from buffer is burnonsend
         if self.flags["logging"]: print(" . encoding message in write buffer")
         msgbytes = encode_message(self._message)
         if self.flags["logging"]: print(" . sending encoded message through socket")
         self._connection.send_msg(msgbytes)
         if self.flags["burnonsend"]: self.message_clear()
 
-        # @todo move this to threaded reciever/listener
-        if self.flags["logging"]: print(" . waiting for recieve...")
-        self._recieved.append(decode_message(self._connection.recv_msg()))
+        # If in instantread mode, wait for the recieve signal then display
+        if self.flags["instantread"]:
+            if self.flags["logging"]: print(" . waiting for recieve (instantread set)")
+            while not self._ls_signal_recieved: pass
+            self.display_message(self._inbox.pop())
+
+
+
+
+        #if self.flags["logging"]: print(" . waiting for recieve...")
+        #self._recieved.append(decode_message(self._connection.recv_msg()))
 
     def display_message(self, msg: Message):
         #print(f'text: "{msg.text}"')
@@ -119,12 +176,17 @@ class Client():
         self._connection.port = port
 
     def connection_establish(self):
-        if self.flags["logging"]: print("Establishing connection")
+        if self.flags["logging"]: print(" . establishing connection")
         self._connection.open()
-        print(self._connection.recv_msg().decode()) # Welcome from server
+        print(f" The server says: {self._connection.recv_msg().decode()}") # Welcome from server
+        if self.flags["logging"]: print(" . starting listener thread")
+        self._listener_start()
 
     def connection_close(self):
-        if self.flags["logging"]: print("Closing connection")
+        if self.flags["logging"]: print(" . stopping listener thread")
+        self._listener_stop()
+        while self._ls_running: pass
+        if self.flags["logging"]: print(" . closing connection")
         self._connection.close()
 
     def get_state(self) -> dict:
@@ -132,7 +194,7 @@ class Client():
                  "connectionhost":self._connection.host,
                  "connectionport":self._connection.port,
                  "messagebuffer":((self._message is not None)*"Occupied" + (self._message is None)*"Empty"),
-                 "recievebuffer":(str(len(self._recieved)) + " messages"),
+                 "recievebuffer":(str(len(self._inbox)) + " messages"),
                  "flags":{}}
         for flag in self.flags:
             state["flags"][flag] = self.flags[flag]*"on" + (not self.flags[flag])*"off"

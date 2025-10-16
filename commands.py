@@ -152,7 +152,7 @@ def quit(client: Client):
 # COMMAND_GET
 # Returns a Command dataclass interpreted from the given string
 def command_get(inpt: str) -> Command:
-    operand = CommandCode.Null
+    opcode = CommandCode.Null
     operands = []
 
     cmdwords = inpt.lower().split()

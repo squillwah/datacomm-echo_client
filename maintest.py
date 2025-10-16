@@ -43,7 +43,7 @@ def main():
 #    print(client.recieved[0].text)
 #    print(client.recieved[0].echo)
 
-    client.connection_close()
+#    client.connection_close()
 
 
     print()
