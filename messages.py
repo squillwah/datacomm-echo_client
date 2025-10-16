@@ -136,6 +136,20 @@ def parse_message_command(inpt: str) -> dict:
 # Displaying Messages
 # -------------------
 
+def stringify_message_fancy(msg: Message) -> str:
+    mess = ""
+    if msg.echo:
+        mess = msg.text
+        if msg.caps:
+            mess = mess.capitalize()
+        if msg.reverse:
+            mess = mess[-1:0]
+    return mess
+
+def stringify_message_raw(msg: Message):
+    mess = f"'{msg.text}' echo:{msg.echo} caps:{msg.caps} reverse:{msg.reverse}"
+    return mess
+
 # Return string of message formatted according to its components
 def message_display_fancy(msg: Message):
     mess = ""
