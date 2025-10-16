@@ -104,7 +104,7 @@ def modify_message(msg: Message, msg_data: dict):
         else: print(f" ! can't modify message {data}, unknown component")
 
 # Get dict of message components from a string
-def parse_message_command(inpt: str) -> dict:
+def parse_message_data_string(inpt: str) -> dict:
     msg_data = {"text":"","modifiers":{}}
 
     inpt.lstrip()           # Trim all left whitespace
