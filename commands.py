@@ -64,7 +64,15 @@ def helpme(cmds: list[str]):
         print("  Message modifiers begin with ';'.")
         print("  The first word without the modifier prefix is considered the start of your message.")
         print("  (if your message must start with a ';', use ;text to begin your message)")
-        print("  modifiers: ;noecho | ;caps | ;reverse | ;text yourmessagehere")
+        print("  modifiers: ;noecho | ;caps | ;reverse | ;text yourmessagehere\n")
+
+        print(" [Message Modifiers]:")
+        print("  Our message format supports the following modifiers:")
+        print("  * ;noecho   disable display of the message echo")
+        print("  * ;caps     capitalize all letters")
+        print("  * ;reverse  reverse the message")
+        print("  * ;text     explicitly begin your message's text")
+
     elif "all" in cmds:
         cmds = ["help", "status", "write", "set"]
     for cmd in cmds:
@@ -161,7 +169,8 @@ def command_get(inpt: str) -> Command:
 
 # COMMAND_RUN
 # Executes the given command's procedure on a Client object
-def command_run(client: Client, cmd: Command):
+def command_run(client: Client, cmd: Command) -> bool:
+    success = True
     match cmd.opcode:
         case CommandCode.Null:
             print(" hint: use the 'help' command")
@@ -178,6 +187,8 @@ def command_run(client: Client, cmd: Command):
             else: print(f" ! flags can only be set on or of, not '{cmd.operands[1]}'")
         case _:
             print(f" ! unknown command type '{cmd}'\n")
+            success = False
     print() # newline between commands
+    return success
 
 
