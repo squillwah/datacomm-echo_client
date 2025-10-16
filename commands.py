@@ -113,6 +113,9 @@ def status(client: Client):
     #    print(f" {flag}: {client.flags[flag]}")
 
     print(f" Connection: {client_state["connection"]}")
+    print(f" Host: {client_state["connectionhost"]}")
+    print(f" Port: {client_state["connectionport"]}\n")
+
     print(f" Write Buffer: {client_state["messagebuffer"]}")
     print(f" Inbox: {client_state["recievebuffer"]}\n")
 

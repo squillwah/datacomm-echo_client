@@ -59,7 +59,9 @@ class Client():
         if self.flags["logging"]: print(" . writing message to buffer")
         self._message = msg
         if self.flags["instantsend"]: self.message_send()
-        if self.flags["instantread"]: self.display_message(self._recieved.pop())
+        if self.flags["instantread"]: self.display_message(self._recieved.pop()) # should this only be in listener?
+
+        # should while loop here to wait for recieve listener with instant read?
 
     def message_clear(self):
         if self.flags["logging"]: print(" . clearing message in buffer")
@@ -106,6 +108,8 @@ class Client():
 
     def get_state(self) -> dict:
         state = {"connection":((self._connection.sock is not None)*"Active" + (self._connection.sock is None)*"Disconnected"),
+                 "connectionhost":self._connection.host,
+                 "connectionport":self._connection.port,
                  "messagebuffer":((self._message is not None)*"Occupied" + (self._message is None)*"Empty"),
                  "recievebuffer":(str(len(self._recieved)) + " messages"),
                  "flags":{}}
