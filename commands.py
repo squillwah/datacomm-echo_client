@@ -177,7 +177,7 @@ def command_get(inpt: str) -> Command:
         case "set":
             opcode = CommandCode.Set
             operands = ["", ""]
-            if len(cmdwords) != 3: print(f" ! bad set command, must be 3 words (set flag on/off")
+            if len(cmdwords) != 3: print(f" ! bad set command, must be 3 words (set flag on/off)")
             else: operands = [cmdwords[1], cmdwords[2]]
         # QUIT
         # 0 operands
