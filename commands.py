@@ -82,17 +82,6 @@ def cmd_help(operands: list[str]):
 # Displays the state of the client's components
 def cmd_status(client: Client, operands = None):
     client_state = client.get_state()
-    #print(" Connection: " + (client.connection.sock is not None)*"Active" + (client.connection.sock is None)*"Closed")
-    #print(" Message Buffer: " + (client.message is not None)*"Full" + (client.message is None)*"Empty")
-    #print(f" Recieve Buffer: {len(client.recieved)}\n")
-
-    #print(f"\n Logging: {client.fl_logging}")
-    #print(f" Instant: {client.fl_instant}")
-    #print(f" Listen: {client.fl_listen}")
-    #print(f" Force: {client.fl_force}\n")
-
-    #for flag in client.flags:
-    #    print(f" {flag}: {client.flags[flag]}")
 
     print(f" Connection: {client_state["connection"]}")
     print(f" Host: {client_state["connectionhost"]}")
@@ -194,10 +183,6 @@ class Command():
 # COMMAND_GET
 # Returns a Command dataclass interpreted from the given string
 def command_get(inpt: str) -> Command:
-    #opcode = CommandCode.Null   # Null command
-    #operands = []               # No operands
-    #signature = (False, False)  # Empty signature
-
     # Process words of command
     cmdwords = inpt.lower().split()
 
@@ -218,7 +203,7 @@ def command_get(inpt: str) -> Command:
         case "write":
             opcode = CommandCode.Write
             signature = 0b11
-            # Special operand case: use single raw input string preserve text spacing
+            # Special operand case: use single raw input string to preserve text spacing
             if len(operands) > 0: operands = [inpt[6:]]
         case "set":
             opcode = CommandCode.Set
@@ -232,59 +217,12 @@ def command_get(inpt: str) -> Command:
         case "edit":
             opcode = CommandCode.Edit
             signature = 0b11
-            # Special operand case: use single raw input string preserve text spacing
+            # Special operand case: use single raw input string to preserve text spacing
             if len(operands) > 0: operands = [inpt[5:]]
         case _:
             print(f" ! unknown command '{inpt}'")
 
     return Command(opcode, operands, signature)
-
-#if cmdwords[0] == "help"
-#
-#    match cmdwords[0]:
-#        # HELP
-#        # 0 -> n operands
-#        # (0, 1) signature
-#        case "help":
-#            opcode = CommandCode.Help
-#            if len(cmdwords) > 1: operands = cmdwords[1:]   # Add help operands (specific commands to explain)
-#        # STATUS
-#        # 0 operands
-#        case "status":
-#            opcode = CommandCode.Status
-#        # WRITE
-#        # 1 operand
-#        case "write":
-#            opcode = CommandCode.Write
-#            if len(cmdwords) > 1: operands = [inpt[6:]]     # Add rest of command (message modifiers and text) 
-#            else: operands = [""]                           # If only "write" was written, specify it as blank
-#        # SET
-#        # 2 operands
-#        case "set":
-#            opcode = CommandCode.Set
-#            operands = ["", ""]
-#            if len(cmdwords) != 3: print(f" ! bad set command, must be 3 words (set flag on/off)")
-#            else: operands = [cmdwords[1], cmdwords[2]]
-#        # QUIT
-#        # 0 operands
-#        case "quit":
-#            opcode = CommandCode.Quit
-#        # VIEW
-#        # 0 operands
-#        case "view":
-#            opcode = CommandCode.View
-#        # EDIT
-#        # 1 operand
-#        case "edit":
-#            opcode = CommandCode.Edit
-#            if len(cmdwords) > 1: operands = [inpt[5:]]     # Same deal as 'write' add rest of command (message modifiers and text) 
-#            else: operands = [""]                           # If only "edit" was written, specify it as blank
-#        # INVALID
-#        # 0 operands/CommandCode.Null
-#        case _:
-#            print(f" ! unknown command '{inpt}'")
-#
-#    return Command(opcode, operands)
 
 # COMMAND_RUN
 # Executes the given command's procedure on a Client object
@@ -306,28 +244,6 @@ def command_run(client: Client, cmd: Command) -> bool:
         #print(f" ! unknown command type '{cmd}'\n")
         success = False
 
-    #match cmd.opcode:
-    #    case CommandCode.Null:
-    #        print(" hint: use the 'help' command")
-    #    case CommandCode.Help:
-    #        helpme(cmd.operands)
-    #    case CommandCode.Status:
-    #        status(client)
-    #    case CommandCode.Write:
-    #        print(cmd.operands)
-    #        write(client, cmd.operands[0])
-    #    case CommandCode.Set:
-    #        if cmd.operands[1] == "on": setflag(client, cmd.operands[0], True)
-    #        elif cmd.operands[1] == "off": setflag(client, cmd.operands[0], False)
-    #        else: print(f" ! flags can only be set on or of, not '{cmd.operands[1]}'")
-    #    case CommandCode.Quit:
-    #        quit(client)
-    #    case CommandCode.View:
-    #        view(client)
-    #    case CommandCode.
-    #    case _:
-    #        print(f" ! unknown command type '{cmd}'\n")
-    #        success = False
     print() # newline between commands
     return success
 
