@@ -1,3 +1,5 @@
+from threading import Thread
+
 from messages import Message, encode_message, decode_message, stringify_message_fancy, stringify_message_raw
 from sock import socketConnection
 
@@ -53,7 +55,7 @@ class Client():
                 print(" ! force flag set, writing anyways")
                 self.message_clear()
             else:
-                print(" ! cancelling write, set the 'force' flag to override")
+                print(" ! cancelling write, clear write buffer or set the 'force' flag to override")
                 return
 
         if self.flags["logging"]: print(" . writing message to buffer")
@@ -61,15 +63,34 @@ class Client():
         if self.flags["instantsend"]: self.message_send()
         if self.flags["instantread"]: self.display_message(self._recieved.pop()) # should this only be in listener?
 
+#        # instant read == wait to recieve echo before moving on
+#        recievedsize = len(self._recieved)
+#        self.message_send()
+#        while(len(self._recieved) == recievedsize) # wait before recieve
+
+        #NO!
+        #NO THREAD!
+        # start a timeout
+        # currentrecieved = len(self._recieved)
+        # sendtime
+        # self.message_send()
+        # while(len(self._recieved) ==
+
+        # clear listener recieve flag
+        # wait while flag is not set
+        # then print the message
+
         # should while loop here to wait for recieve listener with instant read?
 
     def message_clear(self):
-        if self.flags["logging"]: print(" . clearing message in buffer")
+        if self.flags["logging"]: print(" . clearing message in write buffer")
         self._message = None
 
     def message_send(self):
-        if self.flags["logging"]: print(" . sending message in buffer through socket")
-        self._connection.send_msg(encode_message(self._message))
+        if self.flags["logging"]: print(" . encoding message in write buffer")
+        msgbytes = encode_message(self._message)
+        if self.flags["logging"]: print(" . sending encoded message through socket")
+        self._connection.send_msg(msgbytes)
         if self.flags["burnonsend"]: self.message_clear()
 
         # @todo move this to threaded reciever/listener
@@ -116,6 +137,11 @@ class Client():
         for flag in self.flags:
             state["flags"][flag] = self.flags[flag]*"on" + (not self.flags[flag])*"off"
         return state
+
+    def shutdown(self):
+        self.connection_close()
+        # stop the listener
+        self.killme = True
 
 
 
