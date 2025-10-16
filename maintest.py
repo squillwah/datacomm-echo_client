@@ -28,7 +28,7 @@ def main():
     while run:
         cmd = None
         while (cmd == None):
-            inp = input()
+            inp = input("> ")
             if inp == "QUIT":
                 run = False
                 break
