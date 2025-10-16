@@ -182,7 +182,7 @@ class Client():
         messindex = len(self._inbox)-1
         print(f"\n  {reader(self._inbox[messindex])}\n")
 
-        if self.flags["burnonread"]: self.inbox_delete(self, messindex))
+        if self.flags["burnonread"]: self.inbox_delete(messindex)
 
     # Displays all messages in inbox
     #  Optionally empty inbox with 'burnonread'
@@ -197,14 +197,14 @@ class Client():
 
         print()
         for messindex in range(len(self._inbox), 0):
-            print(f"  {messindex}. {reader(self._inbox(messindex)}")
+            print(f"  {messindex}. {reader(self._inbox[messindex])}")
         print()
 
         if self.flags["burnonread"]: self.inbox_empty()
 
     # Delete message at index in inbox
     def inbox_delete(self, index: int):
-        if index < 0 or >= len(self._inbox):
+        if index < 0 or index >= len(self._inbox):
             print(f" ! inbox message {index+1} doesn't exist")
             return
 
