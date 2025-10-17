@@ -118,7 +118,7 @@ def cmd_help(operands: list[str]):
                 exam = "'empty'"
             case "host":
                 desc = "set the connection host address"
-                exam = "'host 127.0.0.1'"
+                exam = "'host 127.0.0.1' / 'host draco1'"
             case "port":
                 desc = "set the connection host port"
                 exam = "'port 31800'"
@@ -300,7 +300,7 @@ def cmd_empty(client: Client) -> bool:
 # Set the client's connection socket host
 def cmd_host(client: Client, operands: list[str]) -> bool:
     if len(operands) != 1:
-        print(" ! bad host command, must be 2 words (host 127.0.0.1)")
+        print(" ! bad host command, must be 2 words (host address")
         return
     client.connection_set_ip(operands[0])
     return True
