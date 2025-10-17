@@ -74,7 +74,6 @@ def cmd_help(operands: list[str]):
             cmds.remove("connection")
         cmds = list(dict.fromkeys(cmds)) # remove duplicates
     for cmd in cmds:
-        # newline between commands
         desc = None
         exam = None
         match cmd:
@@ -108,12 +107,33 @@ def cmd_help(operands: list[str]):
             case "simple":
                 desc = "enter simple mode: write messages and read echos instantly without commands"
                 exam = "'simple'"
+            case "read":
+                desc = "read one, all, or the most recent message in inbox"
+                exam = "'read' / 'read 1' / 'read all'"
+            case "delete":
+                desc = "delete a single message from inbox"
+                exam = "'delete 1'"
+            case "empty":
+                desc = "delete all messages in inbox"
+                exam = "'empty'"
+            case "host":
+                desc = "set the connection host address"
+                exam = "'host 127.0.0.1'"
+            case "port":
+                desc = "set the connection host port"
+                exam = "'port 31800'"
+            case "connect":
+                desc = "attempt a connection with the set host and port"
+                exam = "'connect'"
+            case "disconnect":
+                desc = "disconnect from the established connection"
+                exam = "'disconnect'"
             case _:
                 print(f" ! can't help you with '{cmd}'")
                 continue
         print(f"\n [{cmd}]")
         print(f"  {desc}")
-        print(f"  ex: {desc}")
+        print(f"  ex: {exam}")
 
 # STATUS
 # Displays the state of the client's components
