@@ -134,6 +134,9 @@ class Client():
         if self._connection.host == None:
             print(" ! connection is closed, aborting send")
             return
+        if self._message == None:
+            print(" ! no message in buffer to send")
+            return
 
         # Clear the listener's recieved signal
         self._ls_signal_recieved = False
