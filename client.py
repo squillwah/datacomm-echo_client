@@ -65,8 +65,9 @@ class Client():
     # Stop the listener thread
     def _listener_stop(self):
         self._ls_running = False
-        self._connection.send_msg(b"Bye!")  # Default rcv causes hanging (no timeout), must send final msg for it to grab
+        self._connection.send_msg(b"Bye!")    # Default rcv causes hanging (no timeout), must send final msg for it to grab
         self._ls_thread.join()
+        self.inbox_delete(len(self._inbox)-1) # @jank Clear the bye message from inbox
 
     # =========================================================================
 
