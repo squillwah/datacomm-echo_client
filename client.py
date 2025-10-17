@@ -55,7 +55,6 @@ class Client():
         while(self._ls_running):
             #self._ls_buffer += self._connection.recv_msg()
             data = self._connection.recv_msg() # THIS COULD CAUSE ISSUE WITH INCOMPLETE MESSAGES MAYBE MAYBE MAYBE!
-            if self.flags["logging"]: print(" . message recieved")
 
             ## Search buffer for a valid message wrapped in the message key
             #buffer_string = str(ls_buffer)
@@ -108,7 +107,7 @@ class Client():
             print(" ! no message in buffer to edit")
             return
 
-        if self.flags["logging"]: print(" . updating message")
+        if self.flags["logging"]: print(f" . updating message with {changes}")
         modify_message(self._message, changes)
 
     # Displays the written message in the buffer
