@@ -179,14 +179,14 @@ def cmd_simple(client: Client):
     flagstates = {"force":client.flags["force"],
                   "instantsend":client.flags["instantsend"],
                   "instantread":client.flags["instantread"],
-                  "burnonsend":client.flags["burnonsend"],
-                  "burnonread":client.flags["burnonread"]}
+                  "burnonsend":client.flags["burnonsend"]}
+                  #"burnonread":client.flags["burnonread"]}
 
     client.flags["force"] = True
     client.flags["instantsend"] = True
     client.flags["instantread"] = True
     client.flags["burnonsend"] = True
-    client.flags["burnonread"] = True
+    #client.flags["burnonread"] = True
 
     # Write input loop
     inpt = input(": ")
