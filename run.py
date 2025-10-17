@@ -20,6 +20,10 @@ command_run(client, command_get("connect"))
 
 print("client set-up done, running input loop")
 print("try 'help' for a list of commands\n")
-while not client.killme: command_run(client, command_get(input("> ")))
+try:
+    while not client.killme: command_run(client, command_get(input("> ")))
+except:
+    print("an unhandled error occured, shutting down gracefully")
+    client.shutdown()
 
 
