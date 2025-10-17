@@ -51,6 +51,35 @@ To quit the client, simply type 'quit'. This will nicely close your connection t
 
 ## Screenshots
 
+### startup script: setting port & connecting
+
+![Screenshot](./screenshot1.png)
+![Screenshot](./screenshot2.png)
+
+### echoing a message with the 'write' command
+
+![Screenshot](./screenshot3.png)
+
+### echoing a message with the 'simple' command
+
+![Screenshot](./screenshot4.png)
+
+### disconnecting from the server
+
+![Screenshot](./screenshot5.png)
+
+### connecting to the server
+
+![Screenshot](./screenshot6.png)
+
+### changing port, host, reconnect timeout & successfully
+
+![Screenshot](./screenshot7.png)
+
+### quitting
+
+![Screenshot](./screenshot8.png)
+
 ## Member contributions
 
 - Ravi Dressler
