@@ -117,7 +117,7 @@ def cmd_help(operands: list[str]):
 
 # STATUS
 # Displays the state of the client's components
-def cmd_status(client: Client):
+def cmd_status(client: Client) -> bool:
     client_state = client.get_state()
 
     print(f" Connection: {client_state["connection"]}")
@@ -130,26 +130,35 @@ def cmd_status(client: Client):
     for flag in client_state["flags"]:
         print(f"  {flag}: {client_state["flags"][flag]}")
 
+    return True
+
 # SET
 # Toggle parts of the client on/off
-def cmd_set(client: Client, operands: list[str]):
+def cmd_set(client: Client, operands: list[str]) -> bool:
     if len(operands) != 2:
         print(" ! bad set command, must be 3 words (set flag on/off)")
-        return
+        return False
 
+    success = True
     flag = operands[0]
     onoff = operands[1]
     if flag in client.flags:
         if onoff in ["on", "off"]:
             client.flags[flag] = onoff == "on"
             print(f" {flag}: {client.flags[flag]}")
-        else: print(f" ! flags can only be set on or of, not '{operands[1]}'")
-    else: print(f" ! unknown client setting '{flag}'")
+        else:
+            print(f" ! flags can only be set on or of, not '{operands[1]}'")
+            success = False
+    else:
+        print(f" ! unknown client setting '{flag}'")
+        success = False
+    return success
 
 # QUIT
 # Closes the connection, sets the client's kill signal
-def cmd_quit(client: Client):
+def cmd_quit(client: Client) -> bool:
     client.shutdown()
+    return True
 
 # ---------------------------------
 # WRITE/VIEW/EDIT/CLEAR/SEND/SIMPLE
@@ -158,37 +167,42 @@ def cmd_quit(client: Client):
 
 # WRITE
 # Creates a Message from string & writes it to the client's write buffer
-def cmd_write(client: Client, operands: list[str]):
+def cmd_write(client: Client, operands: list[str]) -> bool:
     if len(operands) > 0: msg_definition_str = operands[0]
     else: msg_definition_str = ""   # allow for blank messages
-    mess = Message(parse_message_data_string(msg_definition_str)) # @? should parsing the message data be done HERE or in MESSAGES?
+    mess = Message(parse_message_data_string(msg_definition_str))
     client.message_write(mess)
+    return True
 
 # VIEW
 # View the message in buffer
-def cmd_view(client: Client):
+def cmd_view(client: Client) -> bool:
     client.message_view()
+    return True
 
 # EDIT
 # Edit the message in buffer
-def cmd_edit(client: Client, operands: list[str]):
+def cmd_edit(client: Client, operands: list[str]) -> bool:
     if len(operands) > 0: msg_definition_str = operands[0]
     else: msg_definition_str = ""   # allow for empty edits
     client.message_edit(parse_message_data_string(msg_definition_str))
+    return True
 
 # CLEAR
 # Clear message from client write buffer
-def cmd_clear(client: Client):
+def cmd_clear(client: Client) -> bool:
     client.message_clear()
+    return True
 
 # SEND
 # Send message in buffer over connection
-def cmd_send(client: Client):
+def cmd_send(client: Client) -> bool:
     client.message_send()
+    return True
 
 # SIMPLE
 # Basic send and echo mode, loops writing and sending a new message each input
-def cmd_simple(client: Client):
+def cmd_simple(client: Client) -> bool:
     print(" entering simple echo mode")
     print(" type 'complex' before your message text/modifiers to quit\n")
 
@@ -217,6 +231,8 @@ def cmd_simple(client: Client):
     for flag in flagstates:
         client.flags[flag] = flagstates[flag]
 
+    return True
+
 # -----------------
 # READ/DELETE/EMPTY
 #  inbox commands
@@ -224,28 +240,37 @@ def cmd_simple(client: Client):
 
 # READ
 # Read one, all, or most recent message in inbox
-def cmd_read(client: Client, operands: list[str]):
+def cmd_read(client: Client, operands: list[str]) -> bool:
     if len(operands) > 1:
         print(" ! bad read command, must be 1 or 2 words (read / read all / read n)")
         return
+    success = True
     if len(operands) == 0: client.inbox_read_top()                    # No operands, read top
     elif operands[0] == "all": client.inbox_read_all()                # "All", list entire inbox
     elif operands[0].isdigit(): client.inbox_read(int(operands[0])-1) # Int, read msg at index
-    else: print(f" ! can't read '{operands[0]}', only (read / read all / read n) accepted")
+    else:
+        print(f" ! can't read '{operands[0]}', only (read / read all / read n) accepted")
+        success = False
+    return success
 
 # DELETE
 # Delete a specific number in inbox
-def cmd_delete(client: Client, operands: list[str]):
+def cmd_delete(client: Client, operands: list[str]) -> bool:
     if len(operands) != 1:
         print(" ! bad delete command, must be 2 words (delete n)")
         return
+    success = True
     if operands[0].isdigit(): client.inbox_delete(int(operands[0])-1)
-    else: print(f" ! can't delete '{operands[0]}', must be inbox message number")
+    else:
+        print(f" ! can't delete '{operands[0]}', must be inbox message number")
+        success = False
+    return success
 
 # EMPTY
 # Delete entire inbox
-def cmd_empty(client: Client):
+def cmd_empty(client: Client) -> bool:
     client.inbox_empty()
+    return True
 
 # ----------------------------
 # HOST/PORT/CONNECT/DISCONNECT
@@ -253,27 +278,34 @@ def cmd_empty(client: Client):
 # ----------------------------
 
 # Set the client's connection socket host
-def cmd_host(client: Client, operands: list[str]):
+def cmd_host(client: Client, operands: list[str]) -> bool:
     if len(operands) != 1:
         print(" ! bad host command, must be 2 words (host 127.0.0.1)")
         return
     client.connection_set_ip(operands[0])
+    return True
 
 # Set the client's connection socket port 
-def cmd_port(client: Client, operands: list[str]):
+def cmd_port(client: Client, operands: list[str]) -> bool:
     if len(operands) != 1:
         print(" ! bad port command, must be 2 words (port 31800)")
         return
+    success = True
     if operands[0].isdigit(): client.connection_set_port(int(operands[0]))
-    else: print(f" ! can't set port to '{operands[0]}', must be int")
+    else:
+        success = False
+        print(f" ! can't set port to '{operands[0]}', must be int")
+    return success
 
 # Activate the client's connection socket
-def cmd_connect(client: Client):
+def cmd_connect(client: Client) -> bool:
     client.connection_establish()
+    return True
 
 # Disconnect the client's connection socket
-def cmd_disconnect(client: Client):
+def cmd_disconnect(client: Client) -> bool:
     client.connection_close()
+    return True
 
 # =============================================================================
 
@@ -400,9 +432,9 @@ def command_run(client: Client, cmd: Command) -> bool:
     success = True
     if cmd.opcode != CommandCode.Null:
         match cmd.signature:
-            case 0b01: cmd.opcode(cmd.operands)
-            case 0b10: cmd.opcode(client)
-            case 0b11: cmd.opcode(client, cmd.operands)
+            case 0b01: success = cmd.opcode(cmd.operands)
+            case 0b10: success = cmd.opcode(client)
+            case 0b11: success = cmd.opcode(client, cmd.operands)
             case _:
                 success = False
                 print(" ! bad command signature, how did that happen?")
