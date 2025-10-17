@@ -172,6 +172,18 @@ class Client():
     #read to view most recent message
     #read all to view all message in inbox
 
+    # Displays message at index in inbox
+    #  Optionally delete the message with 'burnonread'
+    #  Optionally display the message raw with 'rawread'
+    def inbox_read(self, index: int):
+        if index < 0 or index >= len(self._inbox):
+            print(f" ! inbox message {index+1} doesn't exist")
+            return
+        reader = stringify_message_fancy
+        if self.flags["rawread"]: reader = stringify_message_raw
+        print(f"\n  {reader(self._inbox[index])}")
+        if self.flags["burnonread"]: self.inbox_delete(messindex)
+
     # Displays the most recent message added to inbox
     #  Optionally delete the message with 'burnonread'
     #  Optionally display raw message data with 'rawread'
@@ -179,13 +191,10 @@ class Client():
         if len(self._inbox) == 0:
             print(" ! inbox empty")
             return
-
         reader = stringify_message_fancy
         if self.flags["rawread"]: reader = stringify_message_raw
-
         messindex = len(self._inbox)-1
         print(f"\n  {reader(self._inbox[messindex])}\n")
-
         if self.flags["burnonread"]: self.inbox_delete(messindex)
 
     # Displays all messages in inbox
@@ -195,15 +204,12 @@ class Client():
         if len(self._inbox) == 0:
             print(" ! inbox empty")
             return
-
         reader = stringify_message_fancy
         if self.flags["rawread"]: reader = stringify_message_raw
-
         print()
-        for messindex in range(len(self._inbox), 0):
-            print(f"  {messindex}. {reader(self._inbox[messindex])}")
+        for messindex in range(len(self._inbox)-1, -1, -1):
+            print(f"  {messindex+1}. {reader(self._inbox[messindex])}")
         print()
-
         if self.flags["burnonread"]: self.inbox_empty()
 
     # Delete message at index in inbox
@@ -211,19 +217,17 @@ class Client():
         if index < 0 or index >= len(self._inbox):
             print(f" ! inbox message {index+1} doesn't exist")
             return
-
-        if self.flags["logging"]: print(f" . deleting message {index+1}")
+        if self.flags["logging"]: print(f" . deleting inbox message {index+1}")
         del self._inbox[index]
 
     # Delete all messages in inbox
     def inbox_empty(self):
-        if len(self._index) == 0:
+        if len(self._inbox) == 0:
             print(f" ! inbox already empty")
             return
-
         if self.flags["logging"]: print(f" . emptying message {index+1}")
-        for i in range(0, len(self._inbox)): self.inbox_delete(i)
-        # alternatively: self._inbox = []
+        # alternatively for i in range(0, len(self._inbox)): self.inbox_delete(i)
+        self._inbox = []
 
 
     # =========================================================================
