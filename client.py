@@ -29,7 +29,7 @@ class Client():
         self._inbox = []                        # Messages recieved by client
         self._connection = socketConnection()   # Socket manager
 
-        self._ls_thread = None          # Listener thread
+        self._ls_thread = None              # Listener thread
         self._ls_running = False            # Controls the listener recieve loop
         self._ls_signal_recieved = False    # Signals True when a recieve occured
 
@@ -54,7 +54,7 @@ class Client():
     def _listener_process(self):
         while(self._ls_running):
             data = self._connection.recv_msg()  # perhaps slight risk of mangled recvs if messages sent in quick succession
-            self._inbox.append(decode_message(data)) # @todo implement multi message decode and bad message conditions in decode_message
+            self._inbox.append(decode_message(data)) # @todo implement multi message decode / bad message conditions in decode_message
             self._ls_signal_recieved = True
 
     # Start the listener thread
@@ -66,9 +66,9 @@ class Client():
     # Stop the listener thread
     def _listener_stop(self):
         self._ls_running = False
-        self._connection.send_msg(b"Bye!")    # Default rcv causes hanging (no timeout), must send final msg for it to grab
+        self._connection.send_msg(b"Bye!")    # @jank Default rcv causes hanging (no timeout), must send final msg for it to grab
         self._ls_thread.join()
-        self.inbox_delete(len(self._inbox)-1) # @jank Clear the bye message from inbox
+        self.inbox_delete(len(self._inbox)-1) # Clear the bye message from inbox
 
     # =========================================================================
 
@@ -146,12 +146,8 @@ class Client():
         if self.flags["instantread"]:
             if not self._ls_signal_recieved:
                 if self.flags["logging"]: print(" . waiting for recieve")
-                while not self._ls_signal_recieved: pass
+                while not self._ls_signal_recieved: pass    # @jank this will cause a hang if host refuses echo
             self.inbox_read_top()
-
-    def display_message(self, msg: Message):
-        print(f" {stringify_message_fancy(msg)}")
-        print(f" {stringify_message_raw(msg)}")
 
     # =========================================================================
 
@@ -178,11 +174,7 @@ class Client():
         if len(self._inbox) == 0:
             print(" ! inbox empty")
             return
-        reader = stringify_message_fancy
-        if self.flags["rawread"]: reader = stringify_message_raw
-        messindex = len(self._inbox)-1
-        print(f"\n  {reader(self._inbox[messindex])}\n")
-        if self.flags["burnonread"]: self.inbox_delete(messindex)
+        self.inbox_read(len(self._inbox)-1)
 
     # Displays all messages in inbox
     #  Optionally empty inbox with 'burnonread'
@@ -250,19 +242,11 @@ class Client():
         # @todo? could check if port/host is valid here, but set_port and set_ip should do that themselves
 
         if self.flags["logging"]: print(" . establishing connection")
-        #self._connection.sock.settimeout(5)
-        #try:
-
         if self._connection.open():
             print(f" The server says: {self._connection.recv_msg().decode()}") # Welcome from server
             if self.flags["logging"]: print(" . starting listener thread")
             self._listener_start()
         else: print(" ! connection failed")
-
-        #except socket.timeout:
-        #    print(" ! connection timed out, couldn't connect over port/host")
-        #finally:
-        #    self._connection.sock.settimeout(None)
 
     def connection_close(self):
         if self._connection.sock is None:
