@@ -250,16 +250,19 @@ class Client():
         # @todo? could check if port/host is valid here, but set_port and set_ip should do that themselves
 
         if self.flags["logging"]: print(" . establishing connection")
-        self._connection.sock.settimeout(5)
-        try:
-            self._connection.open()
+        #self._connection.sock.settimeout(5)
+        #try:
+
+        if self._connection.open():
             print(f" The server says: {self._connection.recv_msg().decode()}") # Welcome from server
             if self.flags["logging"]: print(" . starting listener thread")
             self._listener_start()
-        except socket.timeout:
-            print(" ! connection timed out, couldn't connect over port/host")
-        finally:
-            self._connection.sock.settimeout(None)
+        else: print(" ! connection failed")
+
+        #except socket.timeout:
+        #    print(" ! connection timed out, couldn't connect over port/host")
+        #finally:
+        #    self._connection.sock.settimeout(None)
 
     def connection_close(self):
         if self._connection.sock is None:
