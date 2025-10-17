@@ -6,12 +6,12 @@ class socketConnection:
         self.port = port
         self.sock = None
 
-        def __enter__(self):
-            self.open()
-            return self
+    def __enter__(self):
+        self.open()
+        return self
 
-        def __exit__(self):
-            self.close()
+    def __exit__(self):
+        self.close()
 
     def open(self):
         if self.sock is not None:
