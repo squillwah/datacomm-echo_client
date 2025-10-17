@@ -130,10 +130,9 @@ def cmd_set(client: Client, operands: list[str]):
     else: print(f" ! unknown client setting '{flag}'")
 
 # QUIT
-# Gracefully shutdown client connection, set the client kill signal
+# Closes the connection, sets the client's kill signal
 def cmd_quit(client: Client):
-    client.connection_close()
-    client.killme = True
+    client.shutdown()
 
 # ---------------------------------
 # WRITE/VIEW/EDIT/CLEAR/SEND/SIMPLE
