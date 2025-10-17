@@ -41,7 +41,7 @@ def cmd_help(operands: list[str]):
         print(" [Writing Messages]:")
         print("  Message modifiers begin with ';'.")
         print("  The first word without the modifier prefix is considered the start of your message.")
-        print("  (if your message must start with a ';', use ;text to begin your message)")
+        print("  (if your message must start with a ';' or whitespace, use ;text to begin your message)")
         print("  modifiers: ;noecho | ;caps | ;reverse | ;text yourmessagehere\n")
 
         print(" [Message Modifiers]:")
@@ -146,26 +146,27 @@ def cmd_edit(client: Client, operands: list[str]):
 # Types of commands in the client + associated procedures
 class CommandCode(Enum):
     Null    = None
+    # Client misc
     Help    = cmd_help #0            # Help text
     Status  = cmd_status #1          # Client state
-    Write   = cmd_write  #2           # Write message
     Set     = cmd_set #3             # Set a client flag
     Quit    = cmd_quit #4
-
-    View = cmd_view #5            # View message written in buffer
-    Edit = cmd_edit #6            # Edit message written in buffer
-
-
-#    clear # clear message in buffer
-#    edit # edit message in buffer
-#    send # send message in buffer (manual)
-#
-# keepwrite # everything written is a message sent : text : text
-#
-#    read # read messages recieved
-#    clear # clear messages recieved
-
-    #quit
+    # Message making
+    Write   = cmd_write  #2           # Write message
+    View    = cmd_view #5            # View message written in buffer
+    Edit    = cmd_edit #6            # Edit message written in buffer
+    Clear   = cmd_clear     # clear message in buffer
+    Send    = cmd_send      # send message in buffer
+    Simple              # keep write mode
+    # Inbox
+    Read # read, read 1, read all
+    Delete  # delete 1 delete 2
+    Empty   # empty whole inbox, (or should it be delete all?)
+    # Connection
+    Host        # set socket host
+    Port        # set socket port
+    Connect     # connect to socket
+    Disconnect  # disconnect from socket
 
 # Command data container 
 @dataclass
