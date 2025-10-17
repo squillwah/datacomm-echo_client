@@ -29,7 +29,6 @@ class Client():
         self._connection = socketConnection()   # Socket manager
 
         self._ls_thread = None          # Listener thread
-        #self._ls_buffer = b""                                   
         self._ls_running = False            # Controls the listener recieve loop
         self._ls_signal_recieved = False    # Signals True when a recieve occured
 
@@ -53,17 +52,7 @@ class Client():
     # Waits for recieves from socket, appends decoded bytes to client inbox
     def _listener_process(self):
         while(self._ls_running):
-            #self._ls_buffer += self._connection.recv_msg()
-            data = self._connection.recv_msg() # THIS COULD CAUSE ISSUE WITH INCOMPLETE MESSAGES MAYBE MAYBE MAYBE!
-
-            ## Search buffer for a valid message wrapped in the message key
-            #buffer_string = str(ls_buffer)
-            #mess_start = buffer_string.find(Message.FORMAT_KEYS["all"][0])
-            #mess_end = buffer_string.find(Message.FORMAT_KEYS["all"][1])
-
-            #if mess_start != -1 and mess_end != -1:
-            #    self._inbox
-
+            data = self._connection.recv_msg()  # perhaps slight risk of mangled recvs if messages sent in quick succession
             self._inbox.append(decode_message(data)) # @todo implement multi message decode and bad message conditions in decode_message
             self._ls_signal_recieved = True
 
@@ -158,8 +147,6 @@ class Client():
                 while not self._ls_signal_recieved: pass
             self.inbox_read_top()
 
-    #def message_recieve() #? should we even bother with the thread, or should we silently halt until its recieved?
-
     def display_message(self, msg: Message):
         print(f" {stringify_message_fancy(msg)}")
         print(f" {stringify_message_raw(msg)}")
@@ -169,9 +156,6 @@ class Client():
     # ----------------------
     # Reading/Emptying Inbox
     # ----------------------
-
-    #read to view most recent message
-    #read all to view all message in inbox
 
     # Displays message at index in inbox
     #  Optionally delete the message with 'burnonread'
@@ -227,9 +211,8 @@ class Client():
             print(f" ! inbox already empty")
             return
         if self.flags["logging"]: print(f" . emptying message {index+1}")
-        # alternatively for i in range(0, len(self._inbox)): self.inbox_delete(i)
         self._inbox = []
-
+        # alternatively: for i in range(0, len(self._inbox)): self.inbox_delete(i)
 
     # =========================================================================
 
@@ -241,6 +224,7 @@ class Client():
         if self._connection.sock is not None:
             print(" ! connection active, disconnect to change ip")
             return
+
         # @todo do some checking here for bad ips (or should that be done in command_interpret?)
 
         if self.flags["logging"]: print(f" . setting connection host to {ip}")
@@ -250,6 +234,7 @@ class Client():
         if self._connection.sock is not None:
             print(" ! connection active, disconnect to change port")
             return
+
         # @todo do some checking here for bad ports (port range)
 
         if self.flags["logging"]: print(f" . setting connection port to {port}")
@@ -259,6 +244,8 @@ class Client():
         if self._connection.sock is not None:
             print(" ! connection already established")
             return
+
+        # @todo check if port/host is valid before connecting
 
         if self.flags["logging"]: print(" . establishing connection")
         self._connection.open()
@@ -270,7 +257,6 @@ class Client():
         if self._connection.sock is None:
             print(" ! connection already closed")
             return
-
         if self.flags["logging"]: print(" . stopping listener thread")
         self._listener_stop()
         while self._ls_running: pass
@@ -295,26 +281,9 @@ class Client():
             state["flags"][flag] = self.flags[flag]*"on" + (not self.flags[flag])*"off"
         return state
 
-    # Gracefully shutdown the client
-    #def shutdown(self):
-    #    self.connection_close()
-    #    # stop the listener
-    #    self.killme = True
-
-
-
-
-
-
-## COMPOSITIONAL MODE!
-## Client can write and edit a message, keep it in the buffer before sending!
-## DIRECT MODE
-## Client writes a message and it sends immediatly
-
-## We want the message to stay stored as long as it hasn't been echo'd back yet
-## The user should be able to resend that message too, or perhaps edit it? They at least need to be able to view it!
-
-## message not echo'd pack, resend?
-## message not echo'd pack, are you sure you want to wipe and write another?
-
+    # Gracefully shutdown client connection, set the kill signal
+    def shutdown(self):
+        if self.flags["logging"]: print(" . shutting down")
+        self.connection_close()
+        self.killme = True
 
