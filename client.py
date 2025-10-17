@@ -1,4 +1,5 @@
-from threading import Thread
+from threading import Thread    # For listener thread
+import socket                   # for connection timeouts
 
 from sock import socketConnection
 from messages import Message, modify_message, \
@@ -246,13 +247,19 @@ class Client():
             print(" ! connection already established")
             return
 
-        # @todo check if port/host is valid before connecting
+        # @todo? could check if port/host is valid here, but set_port and set_ip should do that themselves
 
         if self.flags["logging"]: print(" . establishing connection")
-        self._connection.open()
-        print(f" The server says: {self._connection.recv_msg().decode()}") # Welcome from server
-        if self.flags["logging"]: print(" . starting listener thread")
-        self._listener_start()
+        self._connection.sock.settimeout(5)
+        try:
+            self._connection.open()
+            print(f" The server says: {self._connection.recv_msg().decode()}") # Welcome from server
+            if self.flags["logging"]: print(" . starting listener thread")
+            self._listener_start()
+        except socket.timeout:
+            print(" ! connection timed out, couldn't connect over port/host")
+        finally:
+            self._connection.sock.settimeout(None)
 
     def connection_close(self):
         if self._connection.sock is None:
