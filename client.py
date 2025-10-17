@@ -28,7 +28,7 @@ class Client():
         self._inbox = []                        # Messages recieved by client
         self._connection = socketConnection()   # Socket manager
 
-        self._ls_thread = Thread(target=self._listener_process) # Listener thread
+        self._ls_thread = None          # Listener thread
         #self._ls_buffer = b""                                   
         self._ls_running = False            # Controls the listener recieve loop
         self._ls_signal_recieved = False    # Signals True when a recieve occured
@@ -69,6 +69,7 @@ class Client():
 
     # Start the listener thread
     def _listener_start(self):
+        self._ls_thread = Thread(target=self._listener_process)
         self._ls_running = True
         self._ls_thread.start()
 
@@ -237,15 +238,28 @@ class Client():
     # ----------------------------------
 
     def connection_set_ip(self, ip: str):
-        if self.flags["logging"]: print(f"CLOG: Setting connection host to {ip}")
+        if self._connection.sock is not None:
+            print(" ! connection active, disconnect to change ip")
+            return
         # @todo do some checking here for bad ips (or should that be done in command_interpret?)
+
+        if self.flags["logging"]: print(f" . setting connection host to {ip}")
         self._connection.host = ip
 
     def connection_set_port(self, port: int):
-        if self.flags["logging"]: print(f"CLOG: Setting connection port to {port}")
+        if self._connection.sock is not None:
+            print(" ! connection active, disconnect to change port")
+            return
+        # @todo do some checking here for bad ports (port range)
+
+        if self.flags["logging"]: print(f" . setting connection port to {port}")
         self._connection.port = port
 
     def connection_establish(self):
+        if self._connection.sock is not None:
+            print(" ! connection already established")
+            return
+
         if self.flags["logging"]: print(" . establishing connection")
         self._connection.open()
         print(f" The server says: {self._connection.recv_msg().decode()}") # Welcome from server
@@ -253,6 +267,10 @@ class Client():
         self._listener_start()
 
     def connection_close(self):
+        if self._connection.sock is None:
+            print(" ! connection already closed")
+            return
+
         if self.flags["logging"]: print(" . stopping listener thread")
         self._listener_stop()
         while self._ls_running: pass
