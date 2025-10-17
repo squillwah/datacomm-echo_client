@@ -121,7 +121,7 @@ class Client():
     #  Optionally wait for and read the recieved echo with 'instantread'
     #  Optionally clear the message buffer on send with 'burnonsend'
     def message_send(self):
-        if self._connection.host == None:
+        if self._connection.sock == None:
             print(" ! connection is closed, aborting send")
             return
         if self._message == None:
