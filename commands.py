@@ -74,29 +74,46 @@ def cmd_help(operands: list[str]):
             cmds.remove("connection")
         cmds = list(dict.fromkeys(cmds)) # remove duplicates
     for cmd in cmds:
+        # newline between commands
+        desc = None
+        exam = None
         match cmd:
             case "help":
-                print(" [help]")
-                print("  lends a helping hand")
-                print("  ex: 'help' / 'help all'")
+                desc = "lends a helping hand"
+                exam = "'help' / 'help all'"
             case "status":
-                print(" [status]")
-                print("  displays the current state of the client")
-                print("  ex: 'status'")
-            case "write":
-                print(" [write]")
-                print("  write a message to the client's write buffer")
-                print("  ex: 'write yourmsghere' / 'write ;mod1 ;mod2 ... yourmsghere'")
+                desc = "displays the current state of the client"
+                exam = "'status'"
             case "set":
-                print(" [set]")
-                print("  sets a client flag on or off")
-                print("  ex: 'set instantsend on' / 'set instantread off'")
+                desc = "sets a client flag on or off"
+                exam = "'set instantsend on' / 'set instantread off'"
             case "quit":
-                print(" [quit]")
-                print("  shuts down connection and quits the client")
-                print("  ex: 'quit'")
+                desc = "shuts down connection and quits the client"
+                exam = "'quit'"
+            case "write":
+                desc = "write a message to the write buffer"
+                exam = "ex: 'write yourmsghere' / 'write ;mod1 ;mod2 ... yourmsghere'"
+            case "view":
+                desc = "view the message in the write buffer"
+                exam = "'view'"
+            case "edit":
+                desc = "edit a message in the write buffer"
+                exam = "'edit changetexttothis' / 'edit ;mod1 ;mod2' "
+            case "clear":
+                desc = "clear the write buffer"
+                exam = "'clear'"
+            case "send":
+                desc = "send message in buffer to server"
+                exam = "'send'"
+            case "simple":
+                desc = "enter simple mode: write messages and read echos instantly without commands"
+                exam = "'simple'"
             case _:
                 print(f" ! can't help you with '{cmd}'")
+                continue
+        print(f"\n [{cmd}]")
+        print(f"  {desc}")
+        print(f"  ex: {desc}")
 
 # STATUS
 # Displays the state of the client's components
