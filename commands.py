@@ -206,6 +206,8 @@ def cmd_simple(client: Client):
 #  inbox commands
 # -----------------
 
+# READ
+# Read one, all, or most recent message in inbox
 def cmd_read(client: Client, operands: list[str]):
     if len(operands) > 1:
         print(" ! bad read command, must be 1 or 2 words (read / read all / read n)")
@@ -215,6 +217,8 @@ def cmd_read(client: Client, operands: list[str]):
     elif operands[0].isdigit(): client.inbox_read(int(operands[0])-1) # Int, read msg at index
     else: print(f" ! can't read '{operands[0]}', only (read / read all / read n) accepted")
 
+# DELETE
+# Delete a specific number in inbox
 def cmd_delete(client: Client, operands: list[str]):
     if len(operands) != 1:
         print(" ! bad delete command, must be 2 words (delete n)")
@@ -222,9 +226,38 @@ def cmd_delete(client: Client, operands: list[str]):
     if operands[0].isdigit(): client.inbox_delete(int(operands[0])-1)
     else: print(f" ! can't delete '{operands[0]}', must be inbox message number")
 
+# EMPTY
+# Delete entire inbox
 def cmd_empty(client: Client):
     client.inbox_empty()
 
+# ----------------------------
+# HOST/PORT/CONNECT/DISCONNECT
+#     connection commands
+# ----------------------------
+
+# Set the client's connection socket host
+def cmd_host(client: Client, operands: list[str]):
+    if len(operands) != 1:
+        print(" ! bad host command, must be 2 words (host 127.0.0.1)")
+        return
+    client.connection_set_ip(operands[0])
+
+# Set the client's connection socket port 
+def cmd_port(client: Client, operands: list[str]):
+    if len(operands) != 1:
+        print(" ! bad port command, must be 2 words (port 31800)")
+        return
+    if operands[0].isdigit(): client.connection_set_port(int(operands[0]))
+    else: print(f" ! can't set port to '{operands[0]}', must be int")
+
+# Activate the client's connection socket
+def cmd_connect(client: Client):
+    client.connection_establish()
+
+# Disconnect the client's connection socket
+def cmd_disconnect(client: Client):
+    client.connection_close()
 
 # =============================================================================
 
@@ -251,14 +284,11 @@ class CommandCode(Enum):
     Read    = cmd_read # read top message
     Delete  = cmd_delete # delete at inbox index 
     Empty   = cmd_empty # delete all
-    #Read # read, read 1, read all
-    #Delete  # delete 1 delete 2
-    #Empty   # empty whole inbox, (or should it be delete all?)
-    ## Connection
-    #Host        # set socket host
-    #Port        # set socket port
-    #Connect     # connect to socket
-    #Disconnect  # disconnect from socket
+    # Connection
+    Host    = cmd_host       # set socket host
+    Port    = cmd_port    # set socket port
+    Connect     = cmd_connect  # connect to socket
+    Disconnect  = cmd_disconnect # disconnect from socket
 
 # Command data container 
 @dataclass
@@ -286,52 +316,65 @@ def command_get(inpt: str) -> Command:
     # Set opcode and signature
     opcode = CommandCode.Null   # Default null command
     signature = 0b00            # Empty signature
-    match cmdwords[0]:
-        case "help":
-            opcode = CommandCode.Help
-            signature = 0b01
-        case "status":
-            opcode = CommandCode.Status
-            signature = 0b10
-        case "set":
-            opcode = CommandCode.Set
-            signature = 0b11
-        case "quit":
-            opcode = CommandCode.Quit
-            signature = 0b10
-        case "write":
-            opcode = CommandCode.Write
-            signature = 0b11
-            # Special operand case: use single raw input string to preserve text spacing
-            if len(operands) > 0: operands = [inpt[6:]]
-        case "view":
-            opcode = CommandCode.View
-            signature = 0b10
-        case "edit":
-            opcode = CommandCode.Edit
-            signature = 0b11
-            # Special operand case: use single raw input string to preserve text spacing
-            if len(operands) > 0: operands = [inpt[5:]]
-        case "clear":
-            opcode = CommandCode.Clear
-            signature = 0b10
-        case "send":
-            opcode = CommandCode.Send
-            signature = 0b10
-        case "simple":
-            opcode = CommandCode.Simple
-            signature = 0b10
-        case "read":
-            opcode = CommandCode.Read
-            signature = 0b11
-        case "delete":
-            opcode = CommandCode.Delete
-            signature = 0b11
-        case "empty":
-            opcode = CommandCode.Empty
-            signature = 0b10
-        case _:
-            print(f" ! unknown command '{inpt}'")
+    if len(cmdwords) > 0:
+        match cmdwords[0]:
+            case "help":
+                opcode = CommandCode.Help
+                signature = 0b01
+            case "status":
+                opcode = CommandCode.Status
+                signature = 0b10
+            case "set":
+                opcode = CommandCode.Set
+                signature = 0b11
+            case "quit":
+                opcode = CommandCode.Quit
+                signature = 0b10
+            case "write":
+                opcode = CommandCode.Write
+                signature = 0b11
+                # Special operand case: use single raw input string to preserve text spacing
+                if len(operands) > 0: operands = [inpt[6:]]
+            case "view":
+                opcode = CommandCode.View
+                signature = 0b10
+            case "edit":
+                opcode = CommandCode.Edit
+                signature = 0b11
+                # Special operand case: use single raw input string to preserve text spacing
+                if len(operands) > 0: operands = [inpt[5:]]
+            case "clear":
+                opcode = CommandCode.Clear
+                signature = 0b10
+            case "send":
+                opcode = CommandCode.Send
+                signature = 0b10
+            case "simple":
+                opcode = CommandCode.Simple
+                signature = 0b10
+            case "read":
+                opcode = CommandCode.Read
+                signature = 0b11
+            case "delete":
+                opcode = CommandCode.Delete
+                signature = 0b11
+            case "empty":
+                opcode = CommandCode.Empty
+                signature = 0b10
+            case "host":
+                opcode = CommandCode.Host
+                signature = 0b11
+            case "port":
+                opcode = CommandCode.Port
+                signature = 0b11
+            case "connect":
+                opcode = CommandCode.Connect
+                signature = 0b10
+            case "disconnect":
+                opcode = CommandCode.Disconnect
+                signature = 0b10
+            case _:
+                print(f" ! unknown command '{inpt}'")
 
     return Command(opcode, operands, signature)
 
