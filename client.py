@@ -38,7 +38,7 @@ class Client():
                       "instantsend" : True,     # Instantly send a message once written
                       "instantread" : True,     # Instantly read a message once recieved
                       "burnonsend"  : True,     # Clear the message buffer on send
-                      "burnonread"  : True}     # Delete the recieved message once read
+                      "burnonread"  : False}    # Delete the recieved message once read
 
         self.killme = False     # Signal client manager to stop processing this client
 
@@ -65,8 +65,9 @@ class Client():
     # Stop the listener thread
     def _listener_stop(self):
         self._ls_running = False
-        self._connection.send_msg(b"Bye!")  # Default rcv causes hanging (no timeout), must send final msg for it to grab
+        self._connection.send_msg(b"Bye!")    # Default rcv causes hanging (no timeout), must send final msg for it to grab
         self._ls_thread.join()
+        self.inbox_delete(len(self._inbox)-1) # @jank Clear the bye message from inbox
 
     # =========================================================================
 
@@ -121,7 +122,7 @@ class Client():
     #  Optionally wait for and read the recieved echo with 'instantread'
     #  Optionally clear the message buffer on send with 'burnonsend'
     def message_send(self):
-        if self._connection.host == None:
+        if self._connection.sock == None:
             print(" ! connection is closed, aborting send")
             return
         if self._message == None:
@@ -210,7 +211,7 @@ class Client():
         if len(self._inbox) == 0:
             print(f" ! inbox already empty")
             return
-        if self.flags["logging"]: print(f" . emptying message {index+1}")
+        if self.flags["logging"]: print(f" . emptying {len(self._inbox)} messages from inbox")
         self._inbox = []
         # alternatively: for i in range(0, len(self._inbox)): self.inbox_delete(i)
 
