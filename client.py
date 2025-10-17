@@ -38,7 +38,7 @@ class Client():
                       "instantsend" : True,     # Instantly send a message once written
                       "instantread" : True,     # Instantly read a message once recieved
                       "burnonsend"  : True,     # Clear the message buffer on send
-                      "burnonread"  : True}     # Delete the recieved message once read
+                      "burnonread"  : False}    # Delete the recieved message once read
 
         self.killme = False     # Signal client manager to stop processing this client
 
