@@ -211,7 +211,7 @@ class Client():
         if len(self._inbox) == 0:
             print(f" ! inbox already empty")
             return
-        if self.flags["logging"]: print(f" . emptying message {index+1}")
+        if self.flags["logging"]: print(f" . emptying {len(self._inbox)} messages from inbox")
         self._inbox = []
         # alternatively: for i in range(0, len(self._inbox)): self.inbox_delete(i)
 
