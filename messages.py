@@ -34,14 +34,6 @@ class Message:
                           "caps":False,
                           "rvrs":False}
 
-        ## Initial values
-        #self.echo = True
-        #self.text = ""
-
-        ## extra credit modifiers
-        #self.caps = False
-        #self.rvrs = False
-
         # Parse value initialization dict for alternate values
         modify_message(self, msg_data)
 
@@ -147,6 +139,7 @@ def parse_message_data_string(inpt: str) -> dict:
 # Displaying Messages
 # -------------------
 
+# Return string of message formatted according to its components
 def stringify_message_fancy(msg: Message) -> str:
     mess = ""
     if msg.modifiers["echo"]:
@@ -157,25 +150,10 @@ def stringify_message_fancy(msg: Message) -> str:
             mess = mess[-1:0]
     return mess
 
+# Return string of message with all data laid out plainly
 def stringify_message_raw(msg: Message):
     mess = f"'{msg.text}'  "
     for mod in msg.modifiers:
         mess += f"|{mod}:{msg.modifiers[mod]}"
     mess += "|"
-    return mess
-
-# Return string of message formatted according to its components
-def message_display_fancy(msg: Message):
-    mess = ""
-    if msg.echo:
-        mess = msg.text
-        if msg.caps:
-            mess = mess.capitalize()
-        if msg.reverse:
-            mess = mess[-1:0]
-    return mess
-
-# Return string of message with all data laid out plainly
-def message_display_raw(msg: Message):
-    mess = f"Text = '{msg.text}'\nEcho = {msg.echo}\nCaps = {msg.caps}\nReverse = {msg.reverse}"
     return mess
