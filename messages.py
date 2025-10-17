@@ -83,54 +83,97 @@ def decode_message(code: bytes) -> Message:
 def modify_message(msg: Message, msg_data: dict):
     for data in msg_data:
         if data == "text":
-            if "text" in msg_data:
+            #            if "text" in msg_data:
+            if msg_data["text"] is not None:
                 if type(msg_data["text"]) == str: msg.text = msg_data["text"]
                 else: print(" ! can't modify message text, replacement not string")
         elif data == "modifiers":
-            if "modifiers" in msg_data:
-                for mod in msg_data["modifiers"]:
-                    if mod in msg.modifiers:
-                        if type(msg_data["modifiers"][mod]) == bool: msg.modifiers[mod] = msg_data["modifiers"][mod]
-                        else: print(f" ! can't modify modifier {mod}, replacement not bool")
-                    else: print(f" ! can't modify modifier {mod}, not a valid modifier")
+            for mod in msg_data["modifiers"]:
+                if mod in msg.modifiers:
+                    if type(msg_data["modifiers"][mod]) == bool: msg.modifiers[mod] = msg_data["modifiers"][mod]
+                    else: print(f" ! can't modify modifier {mod}, replacement not bool")
+                else: print(f" ! can't modify modifier {mod}, not a valid modifier")
         else: print(f" ! can't modify message {data}, unknown component")
 
 # Get dict of message components from a string
+#def parse_message_data_string(inpt: str) -> dict:
+#    msg_data = {"text":"","modifiers":{}}
+#
+## todo this better
+## interactive write
+## better connection interface
+## rest of commands
+## true main script
+#    text = None
+#    modifiers = {}
+#
+#    # Find all occurences of the modifier prefix
+#    mod_prefix = ';'
+#    mod_possibles = []
+#    a_mod_possible = inp.find(';')
+#    while(a_mod_possible != -1 and a_mod_possible < len(inpt)-1):
+#        mod_possibles.append(a_mod_possible)
+#        a_mod_possible = inp.find(';', a_mod_possible+1)
+#
+#    # Search for the start of the string
+#
+#    first_mod_possible >= 0:
+#    mod_possibles = [inp.find(';')]
+#
+#    inpt.lstrip()           # Trim all left whitespace
+#    words = inpt.split()    # Split input into list of all words (using space as delimiter)
+#
+#    # Go through each word and handle commands 
+#    # Some commands are single worded, others may be followed by additional words, 
+#    #  Ex: ;noecho (1 word) | ;spoof "IP" (2 words)
+#    #
+#    # Once the first word is found which is not preceeded by the command character (;)
+#    # (and is not a part of a 2 word command), the rest of the word list from that
+#    # word forward will be recombined and interpreted as the text of the message
+#    word = 0
+#    command = True
+#    command_char = ';'
+#    while (word < len(words) and command):
+#        if not words[word].startswith(command_char):
+#            command = False
+#            continue
+#
+#        match words[word][1:]:
+#            case "noecho":
+#                msg_data["modifiers"]["echo"] = False
+#            case "spoof":                   # @todo actually implement spoofing
+#                msg_data["modifiers"]["spoof"] = True
+#                word += 1                   # @err out of bounds access error could happen
+#                msg_data["spoof_ip"] = words[word]  # @todo check spoof ip formatting
+#            case _:
+#                print(f"Command Parsing Error: unkown setting {words[word][1:]}")
+#
+#        word += 1
+#
+#    msg_data["text"] = ' '.join(words[word:])
+#
+#    return msg_data
+
 def parse_message_data_string(inpt: str) -> dict:
-    msg_data = {"text":"","modifiers":{}}
-
-    inpt.lstrip()           # Trim all left whitespace
-    words = inpt.split()    # Split input into list of all words (using space as delimiter)
-
-    # Go through each word and handle commands 
-    # Some commands are single worded, others may be followed by additional words, 
-    #  Ex: ;noecho (1 word) | ;spoof "IP" (2 words)
-    #
-    # Once the first word is found which is not preceeded by the command character (;)
-    # (and is not a part of a 2 word command), the rest of the word list from that
-    # word forward will be recombined and interpreted as the text of the message
-    word = 0
-    command = True
-    command_char = ';'
-    while (word < len(words) and command):
-        if not words[word].startswith(command_char):
-            command = False
-            continue
-
-        match words[word][1:]:
-            case "noecho":
-                msg_data["modifiers"]["echo"] = False
-            case "spoof":                   # @todo actually implement spoofing
-                msg_data["modifiers"]["spoof"] = True
-                word += 1                   # @err out of bounds access error could happen
-                msg_data["spoof_ip"] = words[word]  # @todo check spoof ip formatting
-            case _:
-                print(f"Command Parsing Error: unkown setting {words[word][1:]}")
-
-        word += 1
-
-    msg_data["text"] = ' '.join(words[word:])
-
+    msg_data = {"text":None, "modifiers":{}}
+    mod_prefix = ';'
+    words = inpt.split()
+    text_index = None
+    for word in words:
+        if not word.startswith(mod_prefix):
+            text_index = inpt.find(word)
+            break
+        if word == ";text":
+            text_index = inpt.find(";text")+6
+            break
+        match word:
+            case ";noecho": msg_data["modifiers"]["echo"] = False
+            case ";caps": msg_data["modifiers"]["caps"] = True
+            case ";reverse": msg_data["modifiers"]["rvrs"] = True
+            case _: print(f" ! unknown message modifier '{word}'")
+    if text_index is not None:
+        if text_index < len(inpt): msg_data["text"] = inpt[text_index:]
+        else: msg_data["text"] = ""
     return msg_data
 
 # =============================================================================
@@ -145,9 +188,9 @@ def stringify_message_fancy(msg: Message) -> str:
     if msg.modifiers["echo"]:
         mess = msg.text
         if msg.modifiers["caps"]:
-            mess = mess.capitalize()
+            mess = mess.upper()
         if msg.modifiers["rvrs"]:
-            mess = mess[-1:0]
+            mess = mess[::-1]
     return mess
 
 # Return string of message with all data laid out plainly
