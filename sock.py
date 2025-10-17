@@ -14,18 +14,25 @@ class socketConnection:
         self.close()
 
     def open(self):
+        opened = False
         if self.sock is not None:
             print('Error Socket already open')
-            return
+            return opened
         try:
             self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            self.sock.settimeout(5)
             self.sock.connect((self.host, self.port))
+            self.sock.settimeout(None)
             print(f'Connected to {self.host}:{self.port}')
-
+            opened = True
         except Exception as e:
+            if e is socket.timeout:
+                print('Socket timed out')
+            else:
+                print(f'Failed to open socket: {e}')
             self.sock = None
-            print(f'Failed to open socket: {e}')
-            return
+        finally:
+            return opened
 
     def close(self):
         if self.sock:
